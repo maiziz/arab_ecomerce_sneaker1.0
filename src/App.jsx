@@ -34,7 +34,7 @@ const LoadingFallback = () => (
 function App() {
   const [cartItems, setCartItems] = useState([]);
 
-  const addToCart = (product, size, color) => {
+  const addToCart = (product, size, color, finalPrice) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => 
         item.id === product.id && 
@@ -49,7 +49,13 @@ function App() {
             : item
         );
       }
-      return [...prevItems, { ...product, size, color, quantity: 1 }];
+      return [...prevItems, { 
+        ...product, 
+        size, 
+        color, 
+        price: finalPrice,
+        quantity: 1 
+      }];
     });
   };
 

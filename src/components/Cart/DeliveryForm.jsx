@@ -7,14 +7,7 @@ import {
   MenuItem,
   CircularProgress
 } from '@mui/material';
-
-const wilayas = [
-  { id: 1, name: 'الجزائر العاصمة' },
-  { id: 2, name: 'وهران' },
-  { id: 3, name: 'قسنطينة' },
-  { id: 4, name: 'عنابة' },
-  { id: 5, name: 'سطيف' }
-];
+import { wilayas } from '../../data/algerianWilayas';
 
 const DeliveryForm = ({ 
   deliveryInfo, 
@@ -101,17 +94,22 @@ const DeliveryForm = ({
           sx: { fontFamily: 'Cairo' }
         }}
         SelectProps={{
-          sx: { fontFamily: 'Cairo' }
+          MenuProps: {
+            PaperProps: {
+              sx: {
+                maxHeight: 300,
+                '& .MuiMenuItem-root': {
+                  fontFamily: 'Cairo'
+                }
+              }
+            }
+          }
         }}
         fullWidth
       >
-        {wilayas.map((option) => (
-          <MenuItem 
-            key={option.id} 
-            value={option.name}
-            sx={{ fontFamily: 'Cairo' }}
-          >
-            {option.name}
+        {wilayas.map((wilaya) => (
+          <MenuItem key={wilaya.id} value={wilaya.id}>
+            {wilaya.name}
           </MenuItem>
         ))}
       </TextField>
@@ -140,15 +138,16 @@ const DeliveryForm = ({
         disabled={loading}
         sx={{
           bgcolor: '#1a237e',
+          color: 'white',
           py: 1.5,
           fontFamily: 'Cairo',
           '&:hover': {
-            bgcolor: '#0d1642'
+            bgcolor: '#0d47a1'
           }
         }}
       >
         {loading ? (
-          <CircularProgress size={24} color="inherit" />
+          <CircularProgress size={24} sx={{ color: 'white' }} />
         ) : (
           'تأكيد الطلب'
         )}

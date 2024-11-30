@@ -1,295 +1,302 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Box, Container, Typography, Button, IconButton, Snackbar, Alert } from '@mui/material';
-import { productData } from '../../data/products';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useEffect, useRef } from 'react';
+import { Box, Typography, Container, Card, CardMedia, CardContent, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import gsap from 'gsap';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import { newArrivals, promotions } from '../../data/products';
 
-gsap.registerPlugin(ScrollTrigger);
+const ScrollableSection = ({ title, products, icon: Icon, color, onClick }) => {
+  const scrollContainerRef = useRef(null);
 
-const Hero = () => {
-  const sectionRef = useRef(null);
-  const triggerRef = useRef(null);
-  const navigate = useNavigate();
-  const newArrivals = productData.slice(0, 6);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    const trigger = triggerRef.current;
-
-    if (!section || !trigger) return;
-
-    // Initial fade in animation
-    gsap.fromTo(
-      '.hero-text',
-      { 
-        opacity: 0, 
-        y: 50 
-      },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: 'power3.out'
-      }
-    );
-
-    // Product cards reveal animation
-    gsap.fromTo(
-      '.product-card',
-      {
-        opacity: 0,
-        y: 100,
-        scale: 0.9
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: 'power3.out'
-      }
-    );
-
-    // Horizontal scroll animation
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: trigger,
-        start: 'top top',
-        end: '+=200%',
-        pin: true,
-        scrub: 1,
-      }
-    });
-
-    timeline.to('.products-container', {
-      x: () => -(section.scrollWidth - window.innerWidth + 48),
-      ease: 'none'
-    });
-
-    return () => {
-      timeline.kill();
-      ScrollTrigger.getAll().forEach(t => t.kill());
-    };
-  }, []);
-
-  const handleProductClick = (productId) => {
-    navigate(`/product/${productId}`);
-  };
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackbar(false);
+  const handleScroll = (direction) => {
+    const container = scrollContainerRef.current;
+    const scrollAmount = direction === 'right' ? -400 : 400;
+    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };
 
   return (
-    <Box
-      ref={triggerRef}
-      sx={{
-        height: '100vh',
-        bgcolor: '#f5f5f5',
-        overflow: 'hidden',
-        direction: 'rtl',
-      }}
-    >
-      <Box
-        sx={{
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          position: 'relative',
+    <Box sx={{ position: 'relative', mb: 8 }}>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 4, 
+          gap: 2,
+          bgcolor: color,
+          p: 2,
+          borderRadius: 2,
+          boxShadow: `0 4px 20px ${color}26`
         }}
       >
-        {/* Hero Text */}
-        <Box
-          className="hero-text"
+        <Icon sx={{ color: '#fff', fontSize: 32 }} />
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            fontFamily: 'Cairo',
+            fontWeight: 'bold',
+            color: '#fff'
+          }}
+        >
+          {title}
+        </Typography>
+      </Box>
+
+      <Box sx={{ position: 'relative' }}>
+        <IconButton
+          onClick={() => handleScroll('left')}
           sx={{
             position: 'absolute',
-            top: '15%',
-            right: '5%',
+            left: -20,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            bgcolor: '#fff',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
             zIndex: 2,
-            textAlign: 'right',
-            maxWidth: '600px',
+            '&:hover': { bgcolor: '#f5f5f5' }
           }}
         >
-          <Typography
-            variant="h2"
-            sx={{
-              fontWeight: 'bold',
-              mb: 2,
-              background: 'linear-gradient(45deg, #1a237e 30%, #303f9f 90%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            أحدث الأحذية الرياضية
-          </Typography>
-          <Typography
-            variant="h5"
-            sx={{
-              color: 'text.secondary',
-              mb: 3,
-            }}
-          >
-            اكتشف مجموعتنا الجديدة من الأحذية الرياضية الفاخرة
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate('/products')}
-            sx={{
-              bgcolor: '#1a237e',
-              color: 'white',
-              py: 1.5,
-              px: 4,
-              borderRadius: 2,
-              '&:hover': {
-                bgcolor: '#303f9f',
-                transform: 'translateY(-2px)',
-              },
-              transition: 'all 0.3s ease',
-            }}
-          >
-            تسوق الآن
-          </Button>
-        </Box>
+          <NavigateBeforeIcon />
+        </IconButton>
 
-        {/* Products Container */}
         <Box
-          ref={sectionRef}
-          className="products-container"
+          ref={scrollContainerRef}
           sx={{
             display: 'flex',
-            gap: 4,
-            pr: '5%',
-            pl: '5%',
-            minWidth: 'max-content',
+            gap: 3,
+            overflowX: 'auto',
+            scrollBehavior: 'smooth',
+            pb: 2,
+            '&::-webkit-scrollbar': {
+              height: 8,
+            },
+            '&::-webkit-scrollbar-track': {
+              bgcolor: '#f1f1f1',
+              borderRadius: 4,
+            },
+            '&::-webkit-scrollbar-thumb': {
+              bgcolor: color,
+              borderRadius: 4,
+              '&:hover': {
+                bgcolor: color,
+              },
+            },
           }}
         >
-          {newArrivals.map((product) => (
-            <Box
+          {products.map((product) => (
+            <Card 
               key={product.id}
-              className="product-card"
-              onClick={() => handleProductClick(product.id)}
-              sx={{
-                width: 350,
-                bgcolor: 'white',
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+              onClick={() => onClick(product.id)}
+              sx={{ 
+                minWidth: 300,
                 cursor: 'pointer',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  transform: 'translateY(-10px)',
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
-                  '& img': {
-                    transform: 'scale(1.05)',
-                  },
+                  transform: 'translateY(-8px)',
+                  boxShadow: `0 8px 30px ${color}26`
                 },
+                bgcolor: '#fff',
+                borderRadius: 3,
+                overflow: 'hidden',
+                border: `1px solid ${color}1a`,
+                position: 'relative',
+                flex: '0 0 auto'
               }}
             >
-              <Box
-                sx={{
-                  position: 'relative',
-                  pt: '100%',
-                  overflow: 'hidden',
-                  background: 'linear-gradient(45deg, #f3f3f3 0%, #ffffff 100%)',
-                }}
-              >
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  style={{
+              {product.discount && (
+                <Box
+                  sx={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    top: 16,
+                    right: 16,
+                    bgcolor: '#d32f2f',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 56,
+                    height: 56,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'Cairo',
+                    fontWeight: 'bold',
+                    zIndex: 1,
+                    boxShadow: '0 4px 12px rgba(211, 47, 47, 0.3)'
+                  }}
+                >
+                  {product.discount}%
+                </Box>
+              )}
+
+              <Box sx={{ 
+                position: 'relative',
+                bgcolor: '#fff',
+                p: 3,
+                borderBottom: `1px solid ${color}1a`
+              }}>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={product.image}
+                  alt={product.name}
+                  sx={{ 
+                    objectFit: 'contain',
+                    transform: 'scale(0.9)',
+                    transition: 'transform 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1)'
+                    }
                   }}
                 />
               </Box>
-              <Box sx={{ p: 3 }}>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 'bold',
+              <CardContent sx={{ textAlign: 'right', bgcolor: '#fff' }}>
+                <Typography 
+                  variant="subtitle2" 
+                  sx={{ 
+                    fontFamily: 'Cairo',
+                    color: color,
+                    mb: 0.5
+                  }}
+                >
+                  {product.brand}
+                </Typography>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontFamily: 'Cairo',
                     mb: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    color: color,
+                    fontSize: '1rem'
                   }}
                 >
                   {product.name}
                 </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 'bold',
-                    mb: 2,
-                    color: '#1a237e',
-                  }}
-                >
-                  {product.price.toLocaleString()} د.ج
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    endIcon={<ArrowForwardIcon />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleProductClick(product.id);
-                    }}
-                    sx={{
-                      bgcolor: 'black',
-                      '&:hover': {
-                        bgcolor: '#333',
-                        transform: 'translateY(-2px)',
-                      },
-                      py: 1.5,
-                      transition: 'all 0.3s ease',
+                {product.discount ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontFamily: 'Cairo',
+                        color: '#d32f2f',
+                        fontWeight: 'bold',
+                        fontSize: '1rem'
+                      }}
+                    >
+                      {Math.round(product.price * (1 - product.discount / 100)).toLocaleString()} د.ج
+                    </Typography>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Cairo',
+                        color: '#666',
+                        textDecoration: 'line-through',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {product.price.toLocaleString()} د.ج
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontFamily: 'Cairo',
+                      color: color,
+                      fontWeight: 'bold',
+                      fontSize: '1rem'
                     }}
                   >
-                    اكتشف المزيد
-                  </Button>
-                </Box>
-              </Box>
-            </Box>
+                    {product.price.toLocaleString()} د.ج
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
           ))}
         </Box>
-      </Box>
 
-      {/* Success Snackbar */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity="success"
-          sx={{ 
-            width: '100%',
-            fontFamily: 'Cairo',
-            '& .MuiAlert-message': {
-              textAlign: 'right'
-            }
+        <IconButton
+          onClick={() => handleScroll('right')}
+          sx={{
+            position: 'absolute',
+            right: -20,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            bgcolor: '#fff',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+            zIndex: 2,
+            '&:hover': { bgcolor: '#f5f5f5' }
           }}
         >
-          تمت إضافة المنتج إلى السلة
-        </Alert>
-      </Snackbar>
+          <NavigateNextIcon />
+        </IconButton>
+      </Box>
+    </Box>
+  );
+};
+
+const Hero = () => {
+  const navigate = useNavigate();
+  const newArrivalsRef = useRef(null);
+  const promotionsRef = useRef(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (hasAnimated.current) return;
+    
+    const ctx = gsap.context(() => {
+      gsap.set([newArrivalsRef.current, promotionsRef.current], {
+        y: 50,
+        opacity: 0
+      });
+
+      const tl = gsap.timeline();
+
+      tl.to(newArrivalsRef.current, {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power3.out"
+      })
+      .to(promotionsRef.current, {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power3.out"
+      }, "-=0.5");
+
+      hasAnimated.current = true;
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleProductClick = (id) => {
+    navigate(`/product/${id}`);
+  };
+
+  return (
+    <Box sx={{ bgcolor: '#f8f9fa' }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Box ref={newArrivalsRef}>
+          <ScrollableSection
+            title="وصل حديثاً"
+            products={newArrivals}
+            icon={NewReleasesIcon}
+            color="#1a237e"
+            onClick={handleProductClick}
+          />
+        </Box>
+
+        <Box ref={promotionsRef}>
+          <ScrollableSection
+            title="تخفيضات"
+            products={promotions}
+            icon={LocalFireDepartmentIcon}
+            color="#d32f2f"
+            onClick={handleProductClick}
+          />
+        </Box>
+      </Container>
     </Box>
   );
 };

@@ -1,260 +1,337 @@
+export const categories = [
+  'رياضي',
+  'كاجوال',
+  'كلاسيكي',
+  'أحذية الجري',
+  'أحذية كرة القدم'
+];
+
+export const brands = [
+  { id: 'nike', name: 'Nike', nameAr: 'نايك' },
+  { id: 'adidas', name: 'Adidas', nameAr: 'اديداس' },
+  { id: 'puma', name: 'Puma', nameAr: 'بوما' },
+  { id: 'newbalance', name: 'New Balance', nameAr: 'نيو بالانس' },
+  { id: 'reebok', name: 'Reebok', nameAr: 'ريبوك' }
+];
+
+export const availableSizes = [
+  '36',
+  '37',
+  '38',
+  '39',
+  '40',
+  '41',
+  '42',
+  '43',
+  '44',
+  '45'
+];
+
 export const productData = [
   {
     id: 1,
-    name: 'نايكي اير جوردن 1',
-    price: 24999,
-    image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/b7d9211c-26e7-431a-ac24-b0540fb3c00f/air-jordan-1-mid-shoes-SQf7DM.png',
-    description: 'حذاء رياضي كلاسيكي بتصميم أنيق',
-    brand: 'نايكي',
+    name: 'نايك اير جوردن 1 هاي',
+    brand: 'Nike',
+    brandAr: 'نايك',
     category: 'رياضي',
-    rating: 4.8,
-    reviews: 245,
-    colors: ['أسود', 'أحمر', 'أبيض'],
-    sizes: ['40', '41', '42', '43', '44', '45'],
-    features: [
-      'جلد طبيعي عالي الجودة',
-      'نعل مطاطي مقاوم للانزلاق',
-      'بطانة داخلية مريحة',
-      'تصميم كلاسيكي خالد'
+    price: 24999,
+    image: '/images/hero-shoe.png',
+    description: 'حذاء نايك اير جوردن 1 هاي الأصلي، تصميم كلاسيكي مع راحة استثنائية',
+    colors: [
+      { name: 'أحمر', code: '#FF0000', available: true },
+      { name: 'أسود', code: '#000000', available: true },
+      { name: 'أبيض', code: '#FFFFFF', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true },
+      { size: '44', available: true }
+    ],
+    inStock: true,
+    isNewArrival: true,
+    discount: null
   },
   {
     id: 2,
-    name: 'اديداس الترا بوست',
-    price: 28999,
-    image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/69cbc73d0cb846889f89acbb011e68cb_9366/Ultraboost_Light_Shoes_Black_GX3062_01_standard.jpg',
-    description: 'حذاء رياضي خفيف الوزن مع تقنية بوست المتطورة',
-    brand: 'اديداس',
+    name: 'نايك اير ماكس 90',
+    brand: 'Nike',
+    brandAr: 'نايك',
     category: 'رياضي',
-    rating: 4.7,
-    reviews: 189,
-    colors: ['أسود', 'رمادي', 'أزرق'],
-    sizes: ['41', '42', '43', '44', '45'],
-    features: [
-      'تقنية بوست للامتصاص الصدمات',
-      'نسيج مرن ومريح',
-      'خفيف الوزن',
-      'مثالي للجري'
+    price: 22999,
+    image: '/images/hero-shoe-2.png',
+    description: 'حذاء نايك اير ماكس 90 مع وحدة هواء مرئية للراحة القصوى',
+    colors: [
+      { name: 'أزرق', code: '#0000FF', available: true },
+      { name: 'رمادي', code: '#808080', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '39', available: true },
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true }
+    ],
+    inStock: true,
+    isNewArrival: true,
+    discount: null
   },
   {
     id: 3,
-    name: 'نايكي اير ماكس 270',
-    price: 26999,
-    image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/skwgyqrbfzhu6uyeh0gg/air-max-270-shoes-2V5C4p.png',
-    description: 'حذاء عصري مع وسادة هوائية مريحة',
-    brand: 'نايكي',
-    category: 'رياضي',
-    rating: 4.6,
-    reviews: 156,
-    colors: ['أسود', 'أبيض', 'أحمر'],
-    sizes: ['40', '41', '42', '43', '44'],
-    features: [
-      'وسادة هوائية 270 درجة',
-      'تصميم عصري',
-      'مريح للارتداء اليومي',
-      'خفيف الوزن'
+    name: 'نايك اير فورس 1',
+    brand: 'Nike',
+    brandAr: 'نايك',
+    category: 'كاجوال',
+    price: 19999,
+    image: '/images/hero-shoe-3.png',
+    description: 'حذاء نايك اير فورس 1 الكلاسيكي، أناقة وراحة في كل خطوة',
+    colors: [
+      { name: 'أبيض', code: '#FFFFFF', available: true },
+      { name: 'أسود', code: '#000000', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true }
+    ],
+    inStock: true,
+    isNewArrival: true,
+    discount: null
   },
   {
     id: 4,
-    name: 'بوما سويد كلاسيك',
-    price: 19999,
-    image: 'https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_1350,h_1350/global/374915/01/sv01/fnd/IND/fmt/png/Suede-Classic-XXI-Sneakers',
-    description: 'حذاء كلاسيكي من الجلد المدبوغ',
-    brand: 'بوما',
+    name: 'نايك دنك لو',
+    brand: 'Nike',
+    brandAr: 'نايك',
     category: 'كاجوال',
-    rating: 4.5,
-    reviews: 210,
-    colors: ['أزرق', 'أسود', 'أحمر'],
-    sizes: ['40', '41', '42', '43', '44', '45'],
-    features: [
-      'جلد مدبوغ فاخر',
-      'نعل مطاطي متين',
-      'تصميم كلاسيكي',
-      'مريح للارتداء اليومي'
+    price: 21999,
+    image: '/images/hero-shoe-4.png',
+    description: 'حذاء نايك دنك لو بتصميم عصري وألوان جذابة',
+    colors: [
+      { name: 'أخضر', code: '#008000', available: true },
+      { name: 'أبيض', code: '#FFFFFF', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '39', available: true },
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true }
+    ],
+    inStock: true,
+    isNewArrival: true,
+    discount: null
   },
   {
     id: 5,
-    name: 'نايكي اير فورس 1',
-    price: 23999,
-    image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/b7d9211c-26e7-431a-ac24-b0540fb3c00f/air-force-1-07-shoes-WrLlWX.png',
-    description: 'حذاء رياضي كلاسيكي بتصميم أنيق',
-    brand: 'نايكي',
+    name: 'اديداس سوبرستار',
+    brand: 'Adidas',
+    brandAr: 'اديداس',
     category: 'كاجوال',
-    rating: 4.9,
-    reviews: 320,
-    colors: ['أبيض', 'أسود', 'أزرق'],
-    sizes: ['40', '41', '42', '43', '44', '45'],
-    features: [
-      'جلد طبيعي عالي الجودة',
-      'نعل مطاطي مقاوم للانزلاق',
-      'تصميم كلاسيكي خالد',
-      'مريح للارتداء اليومي'
+    price: 18999,
+    image: '/images/hero-shoe-5.png',
+    description: 'حذاء اديداس سوبرستار الأيقوني مع الأشرطة الثلاثة المميزة',
+    colors: [
+      { name: 'أبيض', code: '#FFFFFF', available: true },
+      { name: 'أسود', code: '#000000', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '38', available: true },
+      { size: '39', available: true },
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true }
+    ],
+    inStock: true,
+    isNewArrival: true,
+    discount: null
   },
   {
     id: 6,
     name: 'اديداس ستان سميث',
-    price: 21999,
-    image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/68ae7ea7849b43eca70aac1e00f5146d_9366/Stan_Smith_Shoes_White_FX5502_01_standard.jpg',
-    description: 'حذاء كلاسيكي بتصميم بسيط وأنيق',
-    brand: 'اديداس',
-    category: 'كاجوال',
-    rating: 4.7,
-    reviews: 280,
-    colors: ['أبيض', 'أخضر', 'أسود'],
-    sizes: ['40', '41', '42', '43', '44'],
-    features: [
-      'جلد طبيعي ناعم',
-      'تصميم كلاسيكي نظيف',
-      'مريح للارتداء اليومي',
-      'نعل مطاطي متين'
+    brand: 'Adidas',
+    brandAr: 'اديداس',
+    category: 'كلاسيكي',
+    price: 17999,
+    image: '/images/hero-shoe-6.png',
+    description: 'حذاء اديداس ستان سميث الكلاسيكي بتصميم نظيف وأنيق',
+    colors: [
+      { name: 'أبيض', code: '#FFFFFF', available: true },
+      { name: 'أخضر', code: '#008000', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true }
+    ],
+    inStock: true,
+    isNewArrival: true,
+    discount: null
   },
   {
     id: 7,
-    name: 'نايكي زووم بيغاسوس',
-    price: 25999,
-    image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/1f00a00a-2e3e-442d-8a90-c7f4d89c5ecd/pegasus-39-road-running-shoes-kmZSD6.png',
-    description: 'حذاء جري احترافي مع تقنية زووم',
-    brand: 'نايكي',
-    category: 'رياضي',
-    rating: 4.8,
-    reviews: 175,
-    colors: ['رمادي', 'أسود', 'أزرق'],
-    sizes: ['41', '42', '43', '44', '45'],
-    features: [
-      'تقنية زووم للامتصاص الصدمات',
-      'خفيف الوزن',
-      'تهوية ممتازة',
-      'مثالي للجري'
+    name: 'بوما ألترا بوست',
+    brand: 'Puma',
+    brandAr: 'بوما',
+    category: 'أحذية الجري',
+    price: 27999,
+    image: '/images/hero-shoe-7.png',
+    description: 'حذاء بوما ألترا بوست للجري مع تقنية متطورة للراحة القصوى',
+    colors: [
+      { name: 'أسود', code: '#000000', available: true },
+      { name: 'رمادي', code: '#808080', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true },
+      { size: '44', available: true }
+    ],
+    inStock: true,
+    isNewArrival: false,
+    discount: 30
   },
   {
     id: 8,
-    name: 'اديداس إن إم دي',
-    price: 27999,
-    image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/2cee64414e1f4f31b193ae760142da56_9366/NMD_R1_Shoes_Black_GZ9256_01_standard.jpg',
-    description: 'حذاء عصري بتقنية بوست المتطورة',
-    brand: 'اديداس',
-    category: 'رياضي',
-    rating: 4.6,
-    reviews: 190,
-    colors: ['أسود', 'أحمر', 'أبيض'],
-    sizes: ['40', '41', '42', '43', '44'],
-    features: [
-      'تقنية بوست للراحة',
-      'تصميم عصري',
-      'خفيف الوزن',
-      'مناسب للمشي والجري'
+    name: 'نيو بالانس 574',
+    brand: 'New Balance',
+    brandAr: 'نيو بالانس',
+    category: 'كاجوال',
+    price: 23999,
+    image: '/images/hero-shoe-8.png',
+    description: 'حذاء نيو بالانس 574 بتصميم كلاسيكي وراحة فائقة',
+    colors: [
+      { name: 'أبيض', code: '#FFFFFF', available: true },
+      { name: 'أسود', code: '#000000', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '39', available: true },
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true }
+    ],
+    inStock: true,
+    isNewArrival: false,
+    discount: 25
   },
   {
     id: 9,
-    name: 'نايكي دنك لو',
-    price: 22999,
-    image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/5e7687f1-c13e-4bac-8ffa-a6f863ae9157/dunk-low-shoes-RwpVH2.png',
-    description: 'حذاء سكيت كلاسيكي بتصميم عصري',
-    brand: 'نايكي',
+    name: 'ريبوك كلاسيك',
+    brand: 'Reebok',
+    brandAr: 'ريبوك',
     category: 'كاجوال',
-    rating: 4.7,
-    reviews: 230,
-    colors: ['أبيض', 'أسود', 'أزرق'],
-    sizes: ['40', '41', '42', '43', '44', '45'],
-    features: [
-      'جلد طبيعي متين',
-      'نعل مطاطي مقاوم للانزلاق',
-      'تصميم كلاسيكي',
-      'مريح للارتداء اليومي'
+    price: 19999,
+    image: '/images/hero-shoe-9.png',
+    description: 'حذاء ريبوك كلاسيك بتصميم عصري وراحة فائقة',
+    colors: [
+      { name: 'أبيض', code: '#FFFFFF', available: true },
+      { name: 'أسود', code: '#000000', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true }
+    ],
+    inStock: true,
+    isNewArrival: false,
+    discount: 20
   },
   {
     id: 10,
-    name: 'اديداس فورم لو',
-    price: 20999,
-    image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/ce8a6f3aa6294de28c8dae760142b7ca_9366/Forum_Low_Shoes_White_GZ9112_01_standard.jpg',
-    description: 'حذاء كلاسيكي بتصميم رياضي مميز',
-    brand: 'اديداس',
-    category: 'كاجوال',
-    rating: 4.5,
-    reviews: 165,
-    colors: ['أبيض', 'أسود', 'أزرق'],
-    sizes: ['40', '41', '42', '43', '44'],
-    features: [
-      'جلد صناعي عالي الجودة',
-      'حزام قابل للتعديل',
-      'نعل مطاطي متين',
-      'تصميم كلاسيكي'
+    name: 'نايك ريفولوشن 6',
+    brand: 'Nike',
+    brandAr: 'نايك',
+    category: 'أحذية الجري',
+    price: 16999,
+    image: '/images/hero-shoe-10.png',
+    description: 'حذاء نايك ريفولوشن 6 للجري اليومي والتدريب',
+    colors: [
+      { name: 'أسود', code: '#000000', available: true },
+      { name: 'رمادي', code: '#808080', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true }
+    ],
+    inStock: true,
+    isNewArrival: false,
+    discount: 35
   },
   {
     id: 11,
-    name: 'نايكي ريفولوشن 6',
-    price: 18999,
-    image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/61734ec7-dad2-40b1-8b75-9c2b6ac0d6d5/revolution-6-road-running-shoes-PC2T1V.png',
-    description: 'حذاء جري خفيف وعملي',
-    brand: 'نايكي',
-    category: 'رياضي',
-    rating: 4.4,
-    reviews: 145,
-    colors: ['أسود', 'رمادي', 'أزرق'],
-    sizes: ['40', '41', '42', '43', '44', '45'],
-    features: [
-      'نسيج شبكي مريح',
-      'خفيف الوزن',
-      'نعل مطاطي مرن',
-      'مثالي للجري والتمارين'
+    name: 'اديداس جازيل',
+    brand: 'Adidas',
+    brandAr: 'اديداس',
+    category: 'كلاسيكي',
+    price: 21999,
+    image: '/images/hero-shoe-11.png',
+    description: 'حذاء اديداس جازيل الكلاسيكي بتصميم رياضي أنيق',
+    colors: [
+      { name: 'أزرق', code: '#0000FF', available: true },
+      { name: 'أسود', code: '#000000', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true }
+    ],
+    inStock: true,
+    isNewArrival: false,
+    discount: 40
   },
   {
     id: 12,
-    name: 'بوما آر إس-زد',
-    price: 23999,
-    image: 'https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_1350,h_1350/global/383781/01/sv01/fnd/IND/fmt/png/RS-Z-Sneakers',
-    description: 'حذاء رياضي عصري بتصميم مستقبلي',
-    brand: 'بوما',
-    category: 'رياضي',
-    rating: 4.6,
-    reviews: 170,
-    colors: ['أبيض', 'أسود', 'برتقالي'],
-    sizes: ['41', '42', '43', '44', '45'],
-    features: [
-      'تصميم عصري مستقبلي',
-      'نعل مريح للغاية',
-      'خفيف الوزن',
-      'مناسب للرياضة والاستخدام اليومي'
+    name: 'بوما سويد كلاسيك',
+    brand: 'Puma',
+    brandAr: 'بوما',
+    category: 'كلاسيكي',
+    price: 25999,
+    image: '/images/hero-shoe-12.png',
+    description: 'حذاء بوما سويد كلاسيك بتصميم أنيق وخامات فاخرة',
+    colors: [
+      { name: 'أسود', code: '#000000', available: true },
+      { name: 'أحمر', code: '#FF0000', available: true }
     ],
-    stockStatus: 'متوفر'
+    sizes: [
+      { size: '40', available: true },
+      { size: '41', available: true },
+      { size: '42', available: true },
+      { size: '43', available: true }
+    ],
+    inStock: true,
+    isNewArrival: false,
+    discount: 30
   }
 ];
 
-export const categories = [
-  {
-    id: 1,
-    name: 'أحذية رياضية',
-    image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/b7d9211c-26e7-431a-ac24-b0540fb3c00f/air-jordan-1-mid-shoes-SQf7DM.png',
-  },
-  {
-    id: 2,
-    name: 'أحذية الجري',
-    image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/69cbc73d0cb846889f89acbb011e68cb_9366/Ultraboost_Light_Shoes_Black_GX3062_01_standard.jpg',
-  },
-  {
-    id: 3,
-    name: 'أحذية كاجوال',
-    image: 'https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_600,h_600/global/374915/01/sv01/fnd/IND/fmt/png/Suede-Classic-XXI-Sneakers',
-  }
-];
+// Helper function to get new arrivals
+export const newArrivals = productData.filter(product => product.isNewArrival);
+
+// Helper function to get products with promotions
+export const promotions = productData.filter(product => product.discount !== null);
+
+// Helper function to get products by category
+export const getProductsByCategory = (category) => {
+  return productData.filter(product => product.category === category);
+};
+
+// Helper function to get products by brand
+export const getProductsByBrand = (brand) => {
+  return productData.filter(product => product.brand === brand);
+};
+
+// Helper function to get available colors for a product
+export const getAvailableColors = (productId) => {
+  const product = productData.find(p => p.id === productId);
+  return product ? product.colors.filter(color => color.available) : [];
+};
+
+// Helper function to get available sizes for a product
+export const getAvailableSizes = (productId) => {
+  const product = productData.find(p => p.id === productId);
+  return product ? product.sizes.filter(size => size.available) : [];
+};

@@ -7,7 +7,9 @@ import {
   IconButton, 
   Drawer,
   useMediaQuery,
-  useTheme
+  useTheme,
+  Fab,
+  Zoom
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { productData } from '../data/products';
@@ -57,21 +59,6 @@ const Products = ({ addToCart }) => {
         <Typography variant="h4" component="h1" fontWeight="bold">
           تسوق الأحذية
         </Typography>
-        {isMobile && (
-          <IconButton 
-            onClick={handleDrawerToggle}
-            sx={{ 
-              color: '#1a237e',
-              border: '1px solid #1a237e',
-              borderRadius: 1,
-              '&:hover': {
-                bgcolor: 'rgba(26, 35, 126, 0.04)',
-              },
-            }}
-          >
-            <FilterListIcon />
-          </IconButton>
-        )}
       </Box>
 
       <Grid container spacing={3}>
@@ -120,6 +107,29 @@ const Products = ({ addToCart }) => {
           </Grid>
         </Grid>
       </Grid>
+
+      {/* Floating Filter Button - Mobile */}
+      {isMobile && (
+        <Zoom in={true}>
+          <Fab
+            color="primary"
+            aria-label="filter"
+            onClick={handleDrawerToggle}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              left: 16,
+              bgcolor: '#1a237e',
+              '&:hover': {
+                bgcolor: '#0d1642',
+              },
+              zIndex: (theme) => theme.zIndex.drawer + 1,
+            }}
+          >
+            <FilterListIcon />
+          </Fab>
+        </Zoom>
+      )}
 
       {/* Filters - Mobile Drawer */}
       <Drawer

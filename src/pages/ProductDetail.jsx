@@ -6,11 +6,11 @@ import {
   Grid, 
   Typography, 
   Button, 
-  Rating, 
   Chip, 
   IconButton,
   Snackbar,
-  Alert
+  Alert,
+  Divider
 } from '@mui/material';
 import { productData } from '../data/products';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -58,13 +58,25 @@ const ProductDetail = ({ addToCart }) => {
       return;
     }
 
-    if (addToCart) {
-      addToCart(product, selectedSize, selectedColor);
-      setError('');
+    // Check if selected size and color are available
+    const sizeAvailable = product.sizes.find(s => s.size === selectedSize)?.available;
+    const colorAvailable = product.colors.find(c => c.name === selectedColor)?.available;
+
+    if (!sizeAvailable || !colorAvailable) {
+      setError('عذراً، هذا المقاس أو اللون غير متوفر حالياً');
       setOpenSnackbar(true);
-      console.log('Adding to cart:', { product, size: selectedSize, color: selectedColor }); // Debug log
-    } else {
-      console.error('addToCart function is not defined in ProductDetail');
+      return;
+    }
+
+    // Calculate final price with discount
+    const finalPrice = product.discount 
+      ? product.price * (1 - product.discount / 100) 
+      : product.price;
+
+    if (addToCart) {
+      addToCart(product, selectedSize, selectedColor, finalPrice);
+      setError('تمت إضافة المنتج إلى السلة');
+      setOpenSnackbar(true);
     }
   };
 
@@ -74,6 +86,11 @@ const ProductDetail = ({ addToCart }) => {
     }
     setOpenSnackbar(false);
   };
+
+  // Calculate the final price after discount
+  const finalPrice = product.discount 
+    ? product.price * (1 - product.discount / 100) 
+    : product.price;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4, direction: 'rtl' }}>
@@ -105,6 +122,44 @@ const ProductDetail = ({ addToCart }) => {
                 objectFit: 'cover',
               }}
             />
+            {/* Product Badges */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 16,
+                left: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+              }}
+            >
+              {product.discount && (
+                <Chip
+                  label={`خصم ${product.discount}%`}
+                  sx={{
+                    bgcolor: '#d32f2f',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    '& .MuiChip-label': {
+                      px: 2,
+                    },
+                  }}
+                />
+              )}
+              {product.isNewArrival && (
+                <Chip
+                  label="وصل حديثاً"
+                  sx={{
+                    bgcolor: '#1a237e',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    '& .MuiChip-label': {
+                      px: 2,
+                    },
+                  }}
+                />
+              )}
+            </Box>
             <Box
               sx={{
                 position: 'absolute',
@@ -132,49 +187,99 @@ const ProductDetail = ({ addToCart }) => {
             </Typography>
 
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Rating value={product.rating} readOnly />
-              <Typography variant="body2" sx={{ mr: 1 }}>
-                ({product.reviews} تقييم)
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  bgcolor: '#f5f5f5', 
+                  px: 2, 
+                  py: 0.5, 
+                  borderRadius: 1,
+                  mr: 2
+                }}
+              >
+                {product.brand}
+              </Typography>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  bgcolor: '#f5f5f5', 
+                  px: 2, 
+                  py: 0.5, 
+                  borderRadius: 1 
+                }}
+              >
+                {product.category}
               </Typography>
             </Box>
 
-            <Typography variant="h5" color="primary" fontWeight="bold" sx={{ mb: 3 }}>
-              {product.price.toLocaleString()} د.ج
-            </Typography>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h5" color="primary" fontWeight="bold">
+                {Math.round(finalPrice).toLocaleString()} د.ج
+              </Typography>
+              {product.discount && (
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    textDecoration: 'line-through',
+                    color: 'text.secondary'
+                  }}
+                >
+                  {product.price.toLocaleString()} د.ج
+                </Typography>
+              )}
+            </Box>
 
             <Typography variant="body1" sx={{ mb: 4 }}>
               {product.description}
             </Typography>
+
+            <Divider sx={{ mb: 3 }} />
+
+            {/* Color Selection */}
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+              اللون:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+              {product.colors.map((color) => (
+                <Box
+                  key={color.name}
+                  onClick={() => color.available && setSelectedColor(color.name)}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    bgcolor: color.code,
+                    borderRadius: '50%',
+                    cursor: color.available ? 'pointer' : 'not-allowed',
+                    border: selectedColor === color.name ? '2px solid #1a237e' : '2px solid transparent',
+                    opacity: color.available ? 1 : 0.5,
+                    position: 'relative',
+                    '&:hover': {
+                      transform: color.available ? 'scale(1.1)' : 'none',
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                />
+              ))}
+            </Box>
 
             {/* Size Selection */}
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
               المقاس:
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-              {product.sizes?.map((size) => (
+              {product.sizes.map((sizeObj) => (
                 <Chip
-                  key={size}
-                  label={size}
-                  onClick={() => setSelectedSize(size)}
-                  variant={selectedSize === size ? "filled" : "outlined"}
-                  color={selectedSize === size ? "primary" : "default"}
-                  sx={{ minWidth: '60px' }}
-                />
-              ))}
-            </Box>
-
-            {/* Color Selection */}
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              اللون:
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, mb: 4, flexWrap: 'wrap' }}>
-              {product.colors?.map((color) => (
-                <Chip
-                  key={color}
-                  label={color}
-                  onClick={() => setSelectedColor(color)}
-                  variant={selectedColor === color ? "filled" : "outlined"}
-                  color={selectedColor === color ? "primary" : "default"}
+                  key={sizeObj.size}
+                  label={sizeObj.size}
+                  onClick={() => sizeObj.available && setSelectedSize(sizeObj.size)}
+                  variant={selectedSize === sizeObj.size ? "filled" : "outlined"}
+                  color={selectedSize === sizeObj.size ? "primary" : "default"}
+                  sx={{ 
+                    minWidth: '60px',
+                    opacity: sizeObj.available ? 1 : 0.5,
+                    cursor: sizeObj.available ? 'pointer' : 'not-allowed'
+                  }}
+                  disabled={!sizeObj.available}
                 />
               ))}
             </Box>
@@ -185,38 +290,33 @@ const ProductDetail = ({ addToCart }) => {
               size="large"
               startIcon={<ShoppingCartIcon />}
               onClick={handleAddToCart}
+              disabled={!product.inStock}
               sx={{
                 mt: 'auto',
                 bgcolor: '#1a237e',
-                '&:hover': {
-                  bgcolor: '#0d1642',
-                },
+                color: 'white',
                 py: 1.5,
+                '&:hover': {
+                  bgcolor: '#0d47a1'
+                }
               }}
             >
-              أضف إلى السلة
+              {product.inStock ? 'إضافة إلى السلة' : 'غير متوفر'}
             </Button>
           </Box>
         </Grid>
       </Grid>
 
-      {/* Success/Error Snackbar */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
+      <Snackbar 
+        open={openSnackbar} 
+        autoHideDuration={6000} 
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert 
           onClose={handleCloseSnackbar} 
-          severity={error ? "error" : "success"}
-          sx={{ 
-            width: '100%',
-            fontFamily: 'Cairo',
-            '& .MuiAlert-message': {
-              textAlign: 'right'
-            }
-          }}
+          severity={error ? "error" : "success"} 
+          sx={{ width: '100%' }}
         >
           {error || 'تمت إضافة المنتج إلى السلة'}
         </Alert>
