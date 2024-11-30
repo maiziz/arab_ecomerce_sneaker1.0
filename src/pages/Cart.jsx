@@ -1,57 +1,61 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
+  Box,
   Container,
   Typography,
-  Box,
-  Card,
-  CardContent,
   Button,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   IconButton,
-  Divider,
-  TextField,
+  Card,
+  CardMedia,
   Grid,
+  Paper,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  Stack,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  ButtonGroup,
+  TextField,
   Alert,
-  Paper
+  CircularProgress,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  FormHelperText,
+  Link
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { useNavigate } from 'react-router-dom';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { formatPrice } from '../utils/formatCurrency';
+import { wilayas } from '../data/algerianWilayas';
 
-const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
+const Cart = ({ cartItems, removeFromCart, updateCartItems, clearCart }) => {
   const navigate = useNavigate();
-  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [openCheckout, setOpenCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedSize, setSelectedSize] = useState({});
+  const [orderSuccess, setOrderSuccess] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     address: '',
+    wilaya: '',
     city: '',
-    notes: '',
-    paymentMethod: 'cod' // cash on delivery by default
+    notes: ''
   });
   const [formErrors, setFormErrors] = useState({});
-  const [orderSuccess, setOrderSuccess] = useState(false);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost = 1000; // Fixed shipping cost
-  const total = subtotal + shippingCost;
-
-  const handleQuantityChange = (itemId, change) => {
+  const handleQuantityChange = (productId, change) => {
     const updatedItems = cartItems.map(item => {
-      if (item.id === itemId) {
-        const newQuantity = Math.max(1, Math.min(10, item.quantity + change)); // Maximum 10 items
+      if (item.id === productId) {
+        const newQuantity = Math.max(1, item.quantity + change);
         return { ...item, quantity: newQuantity };
       }
       return item;
@@ -59,11 +63,14 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
     updateCartItems(updatedItems);
   };
 
-  const handleSizeChange = (itemId, size) => {
-    setSelectedSize(prev => ({
-      ...prev,
-      [itemId]: size
-    }));
+  const calculateTotal = () => {
+    const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const deliveryCost = 1000; // 1000 DZD delivery cost
+    return {
+      subtotal,
+      deliveryCost,
+      total: subtotal + deliveryCost
+    };
   };
 
   const handleInputChange = (e) => {
@@ -85,8 +92,9 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
     const errors = {};
     if (!formData.fullName.trim()) errors.fullName = 'الاسم مطلوب';
     if (!formData.phone.trim()) errors.phone = 'رقم الهاتف مطلوب';
-    if (!/^\d{8,12}$/.test(formData.phone.trim())) errors.phone = 'رقم الهاتف يجب أن يكون بين 8 و 12 رقم';
+    if (!/^\d{10}$/.test(formData.phone.trim())) errors.phone = 'رقم الهاتف يجب أن يكون 10 أرقام';
     if (!formData.address.trim()) errors.address = 'العنوان مطلوب';
+    if (!formData.wilaya.trim()) errors.wilaya = 'الولاية مطلوبة';
     if (!formData.city.trim()) errors.city = 'المدينة مطلوبة';
     
     setFormErrors(errors);
@@ -98,28 +106,31 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
       setLoading(true);
       try {
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Here you would typically send the order to your backend
-        // const response = await fetch('/api/orders', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-        //     items: cartItems,
-        //     customer: formData,
-        //     total: total
-        //   })
-        // });
-        
+        await new Promise(resolve => setTimeout(resolve, 2000));
         setOrderSuccess(true);
+        
+        // Reset cart and form after successful order
         setTimeout(() => {
-          clearCart();
-          setShowCheckoutForm(false);
+          setOpenCheckout(false);
           setOrderSuccess(false);
-          navigate('/');
-        }, 5000); // Increased to 5 seconds
+          setFormData({
+            fullName: '',
+            phone: '',
+            address: '',
+            wilaya: '',
+            city: '',
+            notes: ''
+          });
+          // Clear cart and redirect to home page
+          clearCart();
+          navigate('/', { 
+            state: { 
+              orderSuccess: true,
+              message: 'تم تأكيد طلبك بنجاح! سنتصل بك قريباً.' 
+            } 
+          });
+        }, 3000);
       } catch (error) {
-        console.error('Error processing order:', error);
         setFormErrors({ submit: 'حدث خطأ أثناء معالجة الطلب. يرجى المحاولة مرة أخرى.' });
       } finally {
         setLoading(false);
@@ -129,373 +140,601 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
 
   if (cartItems.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 6, direction: 'rtl' }}>
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 6, 
-            textAlign: 'center', 
-            borderRadius: 4,
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Box
+          sx={{
+            textAlign: 'center',
+            py: 8,
+            px: 3,
             backgroundColor: '#f5f5f5',
-            border: '2px dashed #e0e0e0'
+            borderRadius: 2,
           }}
         >
-          <Typography 
-            sx={{ 
-              textAlign: 'center', 
+          <ShoppingCartIcon sx={{ fontSize: 60, color: '#1a237e', mb: 2, opacity: 0.5 }} />
+          <Typography
+            variant="h5"
+            sx={{
               fontFamily: 'Cairo',
-              fontSize: '1.2rem',
-              color: '#666'
+              color: '#1a237e',
+              mb: 2,
+              fontWeight: 'bold'
             }}
           >
             سلة التسوق فارغة
           </Typography>
-          <Button
-            variant="contained"
-            onClick={() => navigate('/products')}
+          <Typography
             sx={{
-              py: 2,
               fontFamily: 'Cairo',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              borderRadius: 2,
-              backgroundColor: '#1a237e',
-              '&:hover': {
-                backgroundColor: '#0d47a1'
-              },
-              textTransform: 'none',
-              boxShadow: '0 4px 12px rgba(26, 35, 126, 0.2)'
+              color: '#666',
+              mb: 4
             }}
           >
-            تسوق الآن
+            لم تقم بإضافة أي منتجات إلى سلة التسوق بعد
+          </Typography>
+          <Button
+            component={Link}
+            to="/products"
+            variant="contained"
+            sx={{
+              backgroundColor: '#1a237e',
+              fontFamily: 'Cairo',
+              px: 4,
+              py: 1.5,
+              '&:hover': {
+                backgroundColor: '#0d1642'
+              }
+            }}
+          >
+            تصفح المنتجات
           </Button>
-        </Paper>
+        </Box>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6, direction: 'rtl' }}>
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          mb: 4, 
-          fontFamily: 'Cairo', 
-          textAlign: 'right',
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 4,
+          fontFamily: 'Cairo',
           fontWeight: 'bold',
-          color: '#1a237e'
+          color: '#1a237e',
+          textAlign: 'right'
         }}
       >
         سلة التسوق
       </Typography>
 
-      <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
-        {/* Cart Items */}
-        <Box sx={{ flex: 1 }}>
-          {cartItems.map((item) => (
-            <Paper
-              key={item.id}
-              elevation={0}
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={8}>
+          <Stack spacing={3}>
+            {cartItems.map((item) => (
+              <Card
+                key={item.id}
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  p: 2,
+                  borderRadius: 2
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  image={item.image}
+                  alt={item.name}
+                  sx={{
+                    width: { xs: '100%', sm: 200 },
+                    height: { xs: 200, sm: 200 },
+                    objectFit: 'contain',
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: 1
+                  }}
+                />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                    p: { xs: 2, sm: 3 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      mb: 2
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontFamily: 'Cairo',
+                        fontWeight: 'bold',
+                        color: '#1a237e',
+                        textAlign: 'right',
+                        flex: 1
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
+                    <IconButton
+                      onClick={() => removeFromCart(item.id)}
+                      sx={{ color: '#666' }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </Box>
+
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: '#666',
+                      mb: 2,
+                      fontFamily: 'Cairo',
+                      textAlign: 'right'
+                    }}
+                  >
+                    {item.description}
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mt: 'auto'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={() => handleQuantityChange(item.id, -1)}
+                        sx={{
+                          backgroundColor: '#f5f5f5',
+                          '&:hover': { backgroundColor: '#e0e0e0' }
+                        }}
+                      >
+                        <RemoveIcon />
+                      </IconButton>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Cairo',
+                          fontWeight: 'bold',
+                          minWidth: 40,
+                          textAlign: 'center'
+                        }}
+                      >
+                        {item.quantity}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleQuantityChange(item.id, 1)}
+                        sx={{
+                          backgroundColor: '#f5f5f5',
+                          '&:hover': { backgroundColor: '#e0e0e0' }
+                        }}
+                      >
+                        <AddIcon />
+                      </IconButton>
+                    </Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontFamily: 'Cairo',
+                        fontWeight: 'bold',
+                        color: '#1a237e'
+                      }}
+                    >
+                      {formatPrice(item.price * item.quantity)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
+            ))}
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Paper
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              position: { md: 'sticky' },
+              top: { md: 100 }
+            }}
+          >
+            <Typography
+              variant="h6"
               sx={{
-                p: 3,
-                mb: 2,
+                fontFamily: 'Cairo',
+                fontWeight: 'bold',
+                mb: 3,
+                textAlign: 'right'
+              }}
+            >
+              ملخص الطلب
+            </Typography>
+
+            <Box sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  mb: 2
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: 'Cairo',
+                    color: '#666'
+                  }}
+                >
+                  عدد المنتجات
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Cairo',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  mb: 2
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: 'Cairo',
+                    color: '#666'
+                  }}
+                >
+                  المجموع الفرعي
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Cairo',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {formatPrice(calculateTotal().subtotal)}
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  mb: 2
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: 'Cairo',
+                    color: '#666'
+                  }}
+                >
+                  تكلفة التوصيل
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Cairo',
+                    fontWeight: 'bold',
+                    color: '#00796b'
+                  }}
+                >
+                  {formatPrice(calculateTotal().deliveryCost)}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box
+              sx={{
                 display: 'flex',
-                alignItems: 'center',
-                border: '1px solid #e0e0e0',
-                borderRadius: 4,
-                transition: 'all 0.3s ease',
+                justifyContent: 'space-between',
+                mb: 3,
+                px: 1
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: 'Cairo',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem',
+                  color: '#1a237e'
+                }}
+              >
+                المجموع الكلي
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: 'Cairo',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem',
+                  color: '#1a237e'
+                }}
+              >
+                {formatPrice(calculateTotal().total)}
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => setOpenCheckout(true)}
+              sx={{
+                backgroundColor: '#1a237e',
+                fontFamily: 'Cairo',
+                py: 1.5,
                 '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                  backgroundColor: '#0d1642'
                 }
               }}
             >
-              <Box
-                component="img"
-                src={item.image}
-                alt={item.name}
-                sx={{
-                  width: 100,
-                  height: 100,
-                  objectFit: 'contain',
-                  borderRadius: 2,
-                  mr: 3,
-                  backgroundColor: '#f5f5f5',
-                  padding: 1
-                }}
-              />
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography 
-                  sx={{ 
-                    fontFamily: 'Cairo', 
-                    mb: 1,
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold',
-                    color: '#1a237e'
-                  }}
-                >
-                  {item.name}
-                </Typography>
-                <Typography 
-                  sx={{ 
-                    color: '#1976d2', 
-                    fontFamily: 'Cairo',
-                    fontSize: '1.1rem',
-                    fontWeight: '500'
-                  }}
-                >
-                  {formatPrice(item.price)}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                  <ButtonGroup size="small" sx={{ mx: 2 }}>
-                    <Button onClick={() => handleQuantityChange(item.id, -1)}>
-                      <RemoveIcon />
-                    </Button>
-                    <Button disabled sx={{ minWidth: 40 }}>
-                      {item.quantity}
-                    </Button>
-                    <Button onClick={() => handleQuantityChange(item.id, 1)}>
-                      <AddIcon />
-                    </Button>
-                  </ButtonGroup>
-                  <IconButton onClick={() => removeFromCart(item.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </Box>
-            </Paper>
-          ))}
-        </Box>
+              إتمام الشراء
+            </Button>
 
-        {/* Order Summary */}
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 4, 
-            border: '1px solid #e0e0e0', 
-            borderRadius: 4,
-            width: 360,
-            position: 'sticky',
-            top: 24,
-            backgroundColor: '#ffffff'
-          }}
-        >
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              mb: 3, 
-              fontFamily: 'Cairo',
-              fontWeight: 'bold',
-              color: '#1a237e'
-            }}
-          >
-            ملخص الطلب
-          </Typography>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography sx={{ color: '#666', fontFamily: 'Cairo' }}>
-              المجموع الفرعي:
-            </Typography>
-            <Typography sx={{ fontFamily: 'Cairo', fontWeight: '500' }}>
-              {formatPrice(subtotal)}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Typography sx={{ color: '#666', fontFamily: 'Cairo' }}>
-              رسوم الشحن:
-            </Typography>
-            <Typography sx={{ fontFamily: 'Cairo', fontWeight: '500' }}>
-              {formatPrice(shippingCost)}
-            </Typography>
-          </Box>
-
-          {/* Payment Method */}
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="subtitle1" 
-              sx={{ 
-                mb: 2, 
-                fontFamily: 'Cairo', 
-                fontWeight: 'bold',
-                color: '#1a237e'
+            <Button
+              component={Link}
+              to="/products"
+              variant="outlined"
+              fullWidth
+              sx={{
+                mt: 2,
+                borderColor: '#1a237e',
+                color: '#1a237e',
+                fontFamily: 'Cairo',
+                '&:hover': {
+                  borderColor: '#0d1642',
+                  backgroundColor: 'rgba(13, 22, 66, 0.04)'
+                }
               }}
             >
-              طريقة الدفع
-            </Typography>
-            <Paper 
-              elevation={0} 
-              sx={{ 
-                p: 2, 
-                border: '1px solid #e0e0e0', 
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                backgroundColor: '#f5f5f5'
-              }}
-            >
-              <Box 
-                component="img" 
-                src="/cod-icon.png" 
-                alt="الدفع عند الاستلام"
-                sx={{ 
-                  width: 32, 
-                  height: 32, 
-                  objectFit: 'contain' 
-                }} 
-              />
-              <Typography sx={{ fontFamily: 'Cairo', color: '#424242' }}>
-                الدفع عند الاستلام
-              </Typography>
-            </Paper>
-          </Box>
+              مواصلة التسوق
+            </Button>
+          </Paper>
+        </Grid>
+      </Grid>
 
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              mb: 4,
-              pt: 3,
-              borderTop: '2px solid #e0e0e0',
-            }}
-          >
-            <Typography sx={{ fontWeight: 'bold', fontFamily: 'Cairo', color: '#1a237e' }}>
-              المجموع:
-            </Typography>
-            <Typography sx={{ fontWeight: 'bold', fontFamily: 'Cairo', color: '#1a237e', fontSize: '1.2rem' }}>
-              {formatPrice(total)}
-            </Typography>
-          </Box>
-
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={() => setShowCheckoutForm(true)}
-            sx={{
-              py: 2,
-              fontFamily: 'Cairo',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              borderRadius: 2,
-              backgroundColor: '#1a237e',
-              '&:hover': {
-                backgroundColor: '#0d47a1'
-              },
-              textTransform: 'none',
-              boxShadow: '0 4px 12px rgba(26, 35, 126, 0.2)'
-            }}
-          >
-            متابعة الطلب
-          </Button>
-        </Paper>
-      </Box>
-
+      {/* Checkout Dialog */}
       <Dialog 
-        open={showCheckoutForm} 
-        onClose={() => setShowCheckoutForm(false)}
+        open={openCheckout} 
+        onClose={() => !loading && setOpenCheckout(false)}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ fontFamily: 'Cairo', direction: 'rtl' }}>
+        <DialogTitle 
+          sx={{ 
+            fontFamily: 'Cairo', 
+            textAlign: 'right',
+            backgroundColor: '#1a237e',
+            color: 'white'
+          }}
+        >
           معلومات التوصيل
         </DialogTitle>
-        <DialogContent sx={{ direction: 'rtl' }}>
+        <DialogContent sx={{ pt: 3 }}>
           {orderSuccess ? (
-            <Alert severity="success" sx={{ mt: 2, fontFamily: 'Cairo' }}>
-              تم تأكيد طلبك بنجاح! سيتم التواصل معك قريباً.
+            <Alert 
+              severity="success" 
+              sx={{ 
+                mt: 2, 
+                fontFamily: 'Cairo',
+                '& .MuiAlert-message': {
+                  textAlign: 'right'
+                }
+              }}
+            >
+              تم تأكيد طلبك بنجاح! سنتصل بك قريباً لتأكيد الطلب.
             </Alert>
           ) : (
-            <Box sx={{ mt: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="الاسم الكامل"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    error={!!formErrors.fullName}
-                    helperText={formErrors.fullName}
-                    sx={{ '& label': { fontFamily: 'Cairo' } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="رقم الهاتف"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    error={!!formErrors.phone}
-                    helperText={formErrors.phone}
-                    sx={{ '& label': { fontFamily: 'Cairo' } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="العنوان"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    error={!!formErrors.address}
-                    helperText={formErrors.address}
-                    multiline
-                    rows={2}
-                    sx={{ '& label': { fontFamily: 'Cairo' } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="المدينة"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    error={!!formErrors.city}
-                    helperText={formErrors.city}
-                    sx={{ '& label': { fontFamily: 'Cairo' } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="ملاحظات إضافية"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    multiline
-                    rows={2}
-                    sx={{ '& label': { fontFamily: 'Cairo' } }}
-                  />
-                </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="fullName"
+                  label="الاسم الكامل"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  error={!!formErrors.fullName}
+                  helperText={formErrors.fullName}
+                  disabled={loading}
+                  InputProps={{
+                    sx: { fontFamily: 'Cairo', textAlign: 'right' }
+                  }}
+                  InputLabelProps={{
+                    sx: { fontFamily: 'Cairo' }
+                  }}
+                  sx={{ 
+                    '& .MuiInputBase-input': { textAlign: 'right' }
+                  }}
+                />
               </Grid>
-            </Box>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="phone"
+                  label="رقم الهاتف"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  error={!!formErrors.phone}
+                  helperText={formErrors.phone}
+                  disabled={loading}
+                  InputProps={{
+                    sx: { fontFamily: 'Cairo', textAlign: 'right' }
+                  }}
+                  InputLabelProps={{
+                    sx: { fontFamily: 'Cairo' }
+                  }}
+                  sx={{ 
+                    '& .MuiInputBase-input': { textAlign: 'right' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl 
+                  fullWidth 
+                  error={!!formErrors.wilaya}
+                  disabled={loading}
+                >
+                  <InputLabel 
+                    id="wilaya-label"
+                    sx={{ fontFamily: 'Cairo', right: 14, left: 'auto' }}
+                  >
+                    الولاية
+                  </InputLabel>
+                  <Select
+                    labelId="wilaya-label"
+                    name="wilaya"
+                    value={formData.wilaya}
+                    onChange={handleInputChange}
+                    label="الولاية"
+                    sx={{ 
+                      fontFamily: 'Cairo',
+                      textAlign: 'right',
+                      '& .MuiSelect-select': { 
+                        paddingRight: '32px',
+                        paddingLeft: '14px'
+                      }
+                    }}
+                  >
+                    {wilayas.map((wilaya) => (
+                      <MenuItem 
+                        key={wilaya.id} 
+                        value={wilaya.id}
+                        sx={{ 
+                          fontFamily: 'Cairo',
+                          textAlign: 'right',
+                          direction: 'rtl'
+                        }}
+                      >
+                        {wilaya.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {formErrors.wilaya && (
+                    <FormHelperText sx={{ fontFamily: 'Cairo', textAlign: 'right' }}>
+                      {formErrors.wilaya}
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="city"
+                  label="البلدية / المدينة"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  error={!!formErrors.city}
+                  helperText={formErrors.city}
+                  disabled={loading}
+                  InputProps={{
+                    sx: { fontFamily: 'Cairo', textAlign: 'right' }
+                  }}
+                  InputLabelProps={{
+                    sx: { fontFamily: 'Cairo' }
+                  }}
+                  sx={{ 
+                    '& .MuiInputBase-input': { textAlign: 'right' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="address"
+                  label="العنوان بالتفصيل (الشارع، الحي، رقم المنزل)"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  error={!!formErrors.address}
+                  helperText={formErrors.address}
+                  multiline
+                  rows={3}
+                  disabled={loading}
+                  InputProps={{
+                    sx: { fontFamily: 'Cairo', textAlign: 'right' }
+                  }}
+                  InputLabelProps={{
+                    sx: { fontFamily: 'Cairo' }
+                  }}
+                  sx={{ 
+                    '& .MuiInputBase-input': { textAlign: 'right' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="notes"
+                  label="ملاحظات إضافية (اختياري)"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  multiline
+                  rows={2}
+                  disabled={loading}
+                  InputProps={{
+                    sx: { fontFamily: 'Cairo', textAlign: 'right' }
+                  }}
+                  InputLabelProps={{
+                    sx: { fontFamily: 'Cairo' }
+                  }}
+                  sx={{ 
+                    '& .MuiInputBase-input': { textAlign: 'right' }
+                  }}
+                />
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
-        <DialogActions sx={{ direction: 'rtl', p: 2 }}>
-          <Button 
-            onClick={() => setShowCheckoutForm(false)} 
-            sx={{ fontFamily: 'Cairo' }}
-            disabled={loading}
-          >
-            إلغاء
-          </Button>
-          <Button 
-            onClick={handleCheckout} 
-            variant="contained" 
-            sx={{ fontFamily: 'Cairo' }}
-            disabled={loading}
-          >
-            {loading ? 'جاري المعالجة...' : 'تأكيد الطلب'}
-          </Button>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          {!orderSuccess && (
+            <>
+              <Button
+                onClick={() => !loading && setOpenCheckout(false)}
+                disabled={loading}
+                sx={{ 
+                  fontFamily: 'Cairo',
+                  color: '#666'
+                }}
+              >
+                إلغاء
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleCheckout}
+                disabled={loading}
+                sx={{
+                  fontFamily: 'Cairo',
+                  backgroundColor: '#1a237e',
+                  '&:hover': {
+                    backgroundColor: '#0d1642'
+                  },
+                  minWidth: 120
+                }}
+                endIcon={loading && <CircularProgress size={20} color="inherit" />}
+              >
+                {loading ? 'جاري المعالجة...' : 'تأكيد الطلب'}
+              </Button>
+            </>
+          )}
         </DialogActions>
-        {formErrors.submit && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {formErrors.submit}
-          </Alert>
-        )}
       </Dialog>
     </Container>
   );

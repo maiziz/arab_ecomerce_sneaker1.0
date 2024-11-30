@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
+import { ThemeProvider, createTheme, CssBaseline, CircularProgress, Box } from '@mui/material'
 import Navbar from './components/Navbar/Navbar'
-import Home from './pages/Home'
-import Products from './pages/Products'
-import Cart from './pages/Cart'
 import './App.css'
+
+// Lazy load components
+const Home = lazy(() => import('./pages/Home'))
+const Products = lazy(() => import('./pages/Products'))
+const Cart = lazy(() => import('./pages/Cart'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 
 const theme = createTheme({
   direction: 'rtl',
@@ -13,6 +16,20 @@ const theme = createTheme({
     fontFamily: 'Cairo, sans-serif',
   },
 });
+
+// Loading component
+const LoadingFallback = () => (
+  <Box 
+    sx={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh' 
+    }}
+  >
+    <CircularProgress />
+  </Box>
+);
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
@@ -48,21 +65,32 @@ function App() {
       <CssBaseline />
       <Router>
         <Navbar cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)} />
-        <Routes>
-          <Route path="/" element={<Home onAddToCart={addToCart} />} />
-          <Route path="/products" element={<Products onAddToCart={addToCart} />} />
-          <Route 
-            path="/cart" 
-            element={
-              <Cart 
-                cartItems={cartItems}
-                removeFromCart={removeFromCart}
-                clearCart={clearCart}
-                updateCartItems={updateCartItems}
-              />
-            } 
-          />
-        </Routes>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<Home onAddToCart={addToCart} cartItems={cartItems} />} />
+            <Route path="/products" element={<Products onAddToCart={addToCart} />} />
+            <Route 
+              path="/cart" 
+              element={
+                <Cart 
+                  cartItems={cartItems}
+                  removeFromCart={removeFromCart}
+                  clearCart={clearCart}
+                  updateCartItems={updateCartItems}
+                />
+              } 
+            />
+            <Route 
+              path="/product/:id" 
+              element={
+                <ProductDetail 
+                  onAddToCart={addToCart}
+                  cartItems={cartItems}
+                />
+              } 
+            />
+          </Routes>
+        </Suspense>
       </Router>
     </ThemeProvider>
   )
