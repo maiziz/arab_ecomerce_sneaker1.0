@@ -20,19 +20,18 @@ import {
   DialogActions,
   ButtonGroup,
   Alert,
+  Paper
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useNavigate } from 'react-router-dom';
+import { formatPrice } from '../utils/formatCurrency';
 
 const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
   const navigate = useNavigate();
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [promoCode, setPromoCode] = useState('');
-  const [promoDiscount, setPromoDiscount] = useState(0);
-  const [promoError, setPromoError] = useState('');
   const [selectedSize, setSelectedSize] = useState({});
   const [formData, setFormData] = useState({
     fullName: '',
@@ -45,10 +44,9 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
   const [formErrors, setFormErrors] = useState({});
   const [orderSuccess, setOrderSuccess] = useState(false);
 
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost = total > 200 ? 0 : 30; // Free shipping over 200 درهم
-  const discount = (total * promoDiscount);
-  const totalWithShipping = total + shippingCost - discount;
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shippingCost = 1000; // Fixed shipping cost
+  const total = subtotal + shippingCost;
 
   const handleQuantityChange = (itemId, change) => {
     const updatedItems = cartItems.map(item => {
@@ -59,30 +57,6 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
       return item;
     });
     updateCartItems(updatedItems);
-  };
-
-  const handlePromoCode = () => {
-    setPromoError('');
-    // Example promo codes
-    const promoCodes = {
-      'WELCOME10': 0.10,
-      'SUMMER20': 0.20,
-      'SPECIAL30': 0.30
-    };
-
-    if (!promoCode.trim()) {
-      setPromoError('الرجاء إدخال رمز الخصم');
-      return;
-    }
-
-    const discount = promoCodes[promoCode.toUpperCase()];
-    if (discount) {
-      setPromoDiscount(discount);
-      setPromoError('تم تطبيق الخصم بنجاح!');
-    } else {
-      setPromoError('رمز الخصم غير صالح');
-      setPromoDiscount(0);
-    }
   };
 
   const handleSizeChange = (itemId, size) => {
@@ -133,7 +107,7 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
         //   body: JSON.stringify({
         //     items: cartItems,
         //     customer: formData,
-        //     total: totalWithShipping
+        //     total: total
         //   })
         // });
         
@@ -155,173 +129,267 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
 
   if (cartItems.length === 0) {
     return (
-      <Container maxWidth="md" sx={{ mt: { xs: 10, sm: 12 }, direction: 'rtl' }}>
-        <Box sx={{ textAlign: 'center', my: 4 }}>
-          <Typography sx={{ fontFamily: 'Cairo', mb: 2 }}>
+      <Container maxWidth="lg" sx={{ py: 6, direction: 'rtl' }}>
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 6, 
+            textAlign: 'center', 
+            borderRadius: 4,
+            backgroundColor: '#f5f5f5',
+            border: '2px dashed #e0e0e0'
+          }}
+        >
+          <Typography 
+            sx={{ 
+              textAlign: 'center', 
+              fontFamily: 'Cairo',
+              fontSize: '1.2rem',
+              color: '#666'
+            }}
+          >
             سلة التسوق فارغة
           </Typography>
           <Button
             variant="contained"
             onClick={() => navigate('/products')}
-            sx={{ fontFamily: 'Cairo' }}
+            sx={{
+              py: 2,
+              fontFamily: 'Cairo',
+              fontSize: '1.1rem',
+              fontWeight: 'bold',
+              borderRadius: 2,
+              backgroundColor: '#1a237e',
+              '&:hover': {
+                backgroundColor: '#0d47a1'
+              },
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(26, 35, 126, 0.2)'
+            }}
           >
             تسوق الآن
           </Button>
-        </Box>
+        </Paper>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: { xs: 10, sm: 12 }, direction: 'rtl' }}>
-      <Typography variant="h4" sx={{ mb: 4, fontFamily: 'Cairo' }}>
+    <Container maxWidth="lg" sx={{ py: 6, direction: 'rtl' }}>
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          mb: 4, 
+          fontFamily: 'Cairo', 
+          textAlign: 'right',
+          fontWeight: 'bold',
+          color: '#1a237e'
+        }}
+      >
         سلة التسوق
       </Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Card>
-            <List>
-              {cartItems.map((item) => (
-                <React.Fragment key={item.id}>
-                  <ListItem>
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        style={{ width: 60, height: 60, marginLeft: 16, objectFit: 'cover' }}
-                      />
-                      <Box sx={{ flexGrow: 1 }}>
-                        <ListItemText
-                          primary={
-                            <Typography sx={{ fontFamily: 'Cairo', fontWeight: 'bold' }}>
-                              {item.name}
-                            </Typography>
-                          }
-                          secondary={
-                            <>
-                              <Typography sx={{ fontFamily: 'Cairo', color: 'primary.main' }}>
-                                {item.price} درهم
-                              </Typography>
-                              <Box sx={{ mt: 1 }}>
-                                <ButtonGroup size="small">
-                                  {['40', '41', '42', '43', '44', '45'].map((size) => (
-                                    <Button
-                                      key={size}
-                                      variant={selectedSize[item.id] === size ? 'contained' : 'outlined'}
-                                      onClick={() => handleSizeChange(item.id, size)}
-                                      sx={{ minWidth: '40px' }}
-                                    >
-                                      {size}
-                                    </Button>
-                                  ))}
-                                </ButtonGroup>
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                                <ButtonGroup size="small" sx={{ mx: 2 }}>
-                                  <Button onClick={() => handleQuantityChange(item.id, -1)}>
-                                    <RemoveIcon />
-                                  </Button>
-                                  <Button disabled sx={{ minWidth: 40 }}>
-                                    {item.quantity}
-                                  </Button>
-                                  <Button onClick={() => handleQuantityChange(item.id, 1)}>
-                                    <AddIcon />
-                                  </Button>
-                                </ButtonGroup>
-                                <IconButton onClick={() => removeFromCart(item.id)}>
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Box>
-                            </>
-                          }
-                        />
-                      </Box>
-                    </Box>
-                  </ListItem>
-                  <Divider />
-                </React.Fragment>
-              ))}
-            </List>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Cairo' }}>
-                ملخص الطلب
-              </Typography>
-              
-              {/* Promo Code Section */}
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="رمز الخصم"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  error={promoError === 'رمز الخصم غير صالح'}
-                  helperText={promoError}
-                  sx={{ mb: 1 }}
-                />
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={handlePromoCode}
-                  sx={{ fontFamily: 'Cairo' }}
+      <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+        {/* Cart Items */}
+        <Box sx={{ flex: 1 }}>
+          {cartItems.map((item) => (
+            <Paper
+              key={item.id}
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                border: '1px solid #e0e0e0',
+                borderRadius: 4,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                }
+              }}
+            >
+              <Box
+                component="img"
+                src={item.image}
+                alt={item.name}
+                sx={{
+                  width: 100,
+                  height: 100,
+                  objectFit: 'contain',
+                  borderRadius: 2,
+                  mr: 3,
+                  backgroundColor: '#f5f5f5',
+                  padding: 1
+                }}
+              />
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography 
+                  sx={{ 
+                    fontFamily: 'Cairo', 
+                    mb: 1,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    color: '#1a237e'
+                  }}
                 >
-                  تطبيق الخصم
-                </Button>
+                  {item.name}
+                </Typography>
+                <Typography 
+                  sx={{ 
+                    color: '#1976d2', 
+                    fontFamily: 'Cairo',
+                    fontSize: '1.1rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  {formatPrice(item.price)}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                  <ButtonGroup size="small" sx={{ mx: 2 }}>
+                    <Button onClick={() => handleQuantityChange(item.id, -1)}>
+                      <RemoveIcon />
+                    </Button>
+                    <Button disabled sx={{ minWidth: 40 }}>
+                      {item.quantity}
+                    </Button>
+                    <Button onClick={() => handleQuantityChange(item.id, 1)}>
+                      <AddIcon />
+                    </Button>
+                  </ButtonGroup>
+                  <IconButton onClick={() => removeFromCart(item.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
               </Box>
+            </Paper>
+          ))}
+        </Box>
 
-              <Divider sx={{ my: 2 }} />
-              
-              {/* Order Summary */}
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography sx={{ fontFamily: 'Cairo' }}>المجموع</Typography>
-                  <Typography>{total.toFixed(2)} درهم</Typography>
-                </Box>
-                {promoDiscount > 0 && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography sx={{ fontFamily: 'Cairo', color: 'success.main' }}>الخصم</Typography>
-                    <Typography sx={{ color: 'success.main' }}>
-                      -{discount.toFixed(2)} درهم
-                    </Typography>
-                  </Box>
-                )}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography sx={{ fontFamily: 'Cairo' }}>
-                    {total > 200 ? 'الشحن (مجاني)' : 'تكلفة الشحن'}
-                  </Typography>
-                  <Typography>
-                    {total > 200 ? '0.00' : shippingCost} درهم
-                  </Typography>
-                </Box>
-                <Divider sx={{ my: 1 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontFamily: 'Cairo', fontWeight: 'bold' }}>
-                    الإجمالي
-                  </Typography>
-                  <Typography sx={{ fontWeight: 'bold' }}>
-                    {totalWithShipping.toFixed(2)} درهم
-                  </Typography>
-                </Box>
-              </Box>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                onClick={() => setShowCheckoutForm(true)}
-                sx={{ fontFamily: 'Cairo' }}
-              >
-                متابعة الطلب
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        {/* Order Summary */}
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 4, 
+            border: '1px solid #e0e0e0', 
+            borderRadius: 4,
+            width: 360,
+            position: 'sticky',
+            top: 24,
+            backgroundColor: '#ffffff'
+          }}
+        >
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              mb: 3, 
+              fontFamily: 'Cairo',
+              fontWeight: 'bold',
+              color: '#1a237e'
+            }}
+          >
+            ملخص الطلب
+          </Typography>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography sx={{ color: '#666', fontFamily: 'Cairo' }}>
+              المجموع الفرعي:
+            </Typography>
+            <Typography sx={{ fontFamily: 'Cairo', fontWeight: '500' }}>
+              {formatPrice(subtotal)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+            <Typography sx={{ color: '#666', fontFamily: 'Cairo' }}>
+              رسوم الشحن:
+            </Typography>
+            <Typography sx={{ fontFamily: 'Cairo', fontWeight: '500' }}>
+              {formatPrice(shippingCost)}
+            </Typography>
+          </Box>
+
+          {/* Payment Method */}
+          <Box sx={{ mb: 4 }}>
+            <Typography 
+              variant="subtitle1" 
+              sx={{ 
+                mb: 2, 
+                fontFamily: 'Cairo', 
+                fontWeight: 'bold',
+                color: '#1a237e'
+              }}
+            >
+              طريقة الدفع
+            </Typography>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2, 
+                border: '1px solid #e0e0e0', 
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                backgroundColor: '#f5f5f5'
+              }}
+            >
+              <Box 
+                component="img" 
+                src="/cod-icon.png" 
+                alt="الدفع عند الاستلام"
+                sx={{ 
+                  width: 32, 
+                  height: 32, 
+                  objectFit: 'contain' 
+                }} 
+              />
+              <Typography sx={{ fontFamily: 'Cairo', color: '#424242' }}>
+                الدفع عند الاستلام
+              </Typography>
+            </Paper>
+          </Box>
+
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              mb: 4,
+              pt: 3,
+              borderTop: '2px solid #e0e0e0',
+            }}
+          >
+            <Typography sx={{ fontWeight: 'bold', fontFamily: 'Cairo', color: '#1a237e' }}>
+              المجموع:
+            </Typography>
+            <Typography sx={{ fontWeight: 'bold', fontFamily: 'Cairo', color: '#1a237e', fontSize: '1.2rem' }}>
+              {formatPrice(total)}
+            </Typography>
+          </Box>
+
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => setShowCheckoutForm(true)}
+            sx={{
+              py: 2,
+              fontFamily: 'Cairo',
+              fontSize: '1.1rem',
+              fontWeight: 'bold',
+              borderRadius: 2,
+              backgroundColor: '#1a237e',
+              '&:hover': {
+                backgroundColor: '#0d47a1'
+              },
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(26, 35, 126, 0.2)'
+            }}
+          >
+            متابعة الطلب
+          </Button>
+        </Paper>
+      </Box>
 
       <Dialog 
         open={showCheckoutForm} 
@@ -429,26 +497,6 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
           </Alert>
         )}
       </Dialog>
-      {/* Payment Method Selection */}
-      <Box sx={{ mb: 3 }}>
-        <Typography sx={{ mb: 1, fontFamily: 'Cairo' }}>طريقة الدفع</Typography>
-        <ButtonGroup fullWidth>
-          <Button
-            variant={formData.paymentMethod === 'cod' ? 'contained' : 'outlined'}
-            onClick={() => handleInputChange({ target: { name: 'paymentMethod', value: 'cod' }})}
-            sx={{ fontFamily: 'Cairo' }}
-          >
-            الدفع عند الاستلام
-          </Button>
-          <Button
-            variant={formData.paymentMethod === 'card' ? 'contained' : 'outlined'}
-            onClick={() => handleInputChange({ target: { name: 'paymentMethod', value: 'card' }})}
-            sx={{ fontFamily: 'Cairo' }}
-          >
-            بطاقة ائتمان
-          </Button>
-        </ButtonGroup>
-      </Box>
     </Container>
   );
 };

@@ -15,13 +15,14 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import ProductCard from '../components/ProductCard/ProductCard';
 import PriceRangeFilter from '../components/Filters/PriceRangeFilter';
+import { formatPrice } from '../utils/formatCurrency';
 
 // Product data
 const productData = [
   {
     id: 1,
     name: 'نايكي اير جوردن 1',
-    price: 799,
+    price: 24999,
     image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/b7d9211c-26e7-431a-ac24-b0540fb3c00f/air-jordan-1-mid-shoes-SQf7DM.png',
     description: 'حذاء رياضي كلاسيكي بتصميم أنيق',
     brand: 'نايكي',
@@ -30,7 +31,7 @@ const productData = [
   {
     id: 2,
     name: 'اديداس الترا بوست',
-    price: 899,
+    price: 28999,
     image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/69cbc73d0cb846889f89acbb011e68cb_9366/Ultraboost_Light_Shoes_Black_GX3062_01_standard.jpg',
     description: 'حذاء جري مريح مع تقنية بوست المتطورة',
     brand: 'اديداس',
@@ -39,7 +40,7 @@ const productData = [
   {
     id: 3,
     name: 'بوما سويد كلاسيك',
-    price: 399,
+    price: 12999,
     image: 'https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_600,h_600/global/374915/01/sv01/fnd/IND/fmt/png/Suede-Classic-XXI-Sneakers',
     description: 'حذاء كاجوال كلاسيكي للاستخدام اليومي',
     brand: 'بوما',
@@ -48,7 +49,7 @@ const productData = [
   {
     id: 4,
     name: 'نايكي اير ماكس 270',
-    price: 699,
+    price: 22999,
     image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/skwgyqrbfzhu6uyeh0gg/air-max-270-shoes-2V5C4p.png',
     description: 'حذاء رياضي خفيف مع وسادة هوائية',
     brand: 'نايكي',
@@ -57,7 +58,7 @@ const productData = [
   {
     id: 5,
     name: 'اديداس ستان سميث',
-    price: 449,
+    price: 15999,
     image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/68ae7ea7849b43eca70aac1e00f5146d_9366/Stan_Smith_Shoes_White_FX5502_01_standard.jpg',
     description: 'حذاء كلاسيكي أنيق باللون الأبيض',
     brand: 'اديداس',
@@ -66,7 +67,7 @@ const productData = [
   {
     id: 6,
     name: 'نيو بالانس 574',
-    price: 549,
+    price: 18999,
     image: 'https://nb.scene7.com/is/image/NB/ml574evg_nb_02_i?$pdpflexf2$&wid=440&hei=440',
     description: 'حذاء رياضي مريح للمشي اليومي',
     brand: 'نيو بالانس',
@@ -76,7 +77,7 @@ const productData = [
 
 const Products = ({ onAddToCart }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   const [selectedBrand, setSelectedBrand] = useState('الكل');
   const [selectedCategory, setSelectedCategory] = useState('الكل');
 
@@ -231,12 +232,17 @@ const Products = ({ onAddToCart }) => {
 
           {/* Price Filter */}
           <Box sx={{ mb: 3 }}>
-            <PriceRangeFilter 
-              priceRange={priceRange}
-              onPriceRangeChange={setPriceRange}
-              min={0}
-              max={1000}
-            />
+            <Typography sx={{ mb: 1, fontFamily: 'Cairo', fontSize: '0.9rem', color: '#666', textAlign: 'right' }}>
+              السعر الأقصى
+            </Typography>
+            <Box sx={{ px: 2 }}>
+              <PriceRangeFilter 
+                priceRange={priceRange}
+                onPriceRangeChange={setPriceRange}
+                min={0}
+                max={100000}
+              />
+            </Box>
           </Box>
         </Box>
 
@@ -344,7 +350,7 @@ const Products = ({ onAddToCart }) => {
                       setSearchQuery('');
                       setSelectedBrand('الكل');
                       setSelectedCategory('الكل');
-                      setPriceRange([0, 1000]);
+                      setPriceRange([0, 100000]);
                     }}
                   >
                     إعادة تعيين الفلاتر

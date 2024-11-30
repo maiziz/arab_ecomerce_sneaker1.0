@@ -7,21 +7,21 @@ const featuredProducts = [
     id: 1,
     name: 'نايكي اير جوردن 1',
     description: 'حذاء رياضي كلاسيكي بتصميم أنيق',
-    price: 799,
+    price: 24999,
     image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/b7d9211c-26e7-431a-ac24-b0540fb3c00f/air-jordan-1-mid-shoes-SQf7DM.png'
   },
   {
     id: 2,
     name: 'اديداس الترا بوست',
     description: 'حذاء جري مريح مع تقنية بوست المتطورة',
-    price: 899,
+    price: 28999,
     image: 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/69cbc73d0cb846889f89acbb011e68cb_9366/Ultraboost_Light_Shoes_Black_GX3062_01_standard.jpg'
   },
   {
     id: 3,
     name: 'نايكي اير ماكس 270',
     description: 'حذاء رياضي خفيف مع وسادة هوائية',
-    price: 699,
+    price: 22999,
     image: 'https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/skwgyqrbfzhu6uyeh0gg/air-max-270-shoes-2V5C4p.png'
   }
 ];

@@ -9,6 +9,7 @@ import {
   Box
 } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import { formatPrice } from '../../utils/formatCurrency';
 
 const ProductCard = ({ product, onAddToCart }) => {
   return (
@@ -82,7 +83,7 @@ const ProductCard = ({ product, onAddToCart }) => {
             direction: 'rtl'
           }}
         >
-          {product.price} درهم
+          {formatPrice(product.price)}
         </Typography>
       </CardContent>
       <CardActions sx={{ p: 2, pt: 1 }}>

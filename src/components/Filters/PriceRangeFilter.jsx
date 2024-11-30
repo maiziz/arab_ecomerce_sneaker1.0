@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Typography,
   TextField,
   InputAdornment
 } from '@mui/material';
@@ -21,27 +20,14 @@ const PriceRangeFilter = ({
 
   return (
     <Box>
-      <Typography 
-        sx={{ 
-          mb: 2, 
-          fontFamily: 'Cairo',
-          fontSize: '0.9rem',
-          color: '#666',
-          textAlign: 'right'
-        }}
-      >
-        السعر الأقصى
-      </Typography>
-
       <TextField
-        label="السعر الأقصى"
         type="number"
         variant="outlined"
         size="small"
         value={maxPrice}
         onChange={handleMaxInputChange}
         InputProps={{
-          endAdornment: <InputAdornment position="end">درهم</InputAdornment>,
+          endAdornment: <InputAdornment position="end">دج</InputAdornment>,
         }}
         sx={{
           width: '100%',
