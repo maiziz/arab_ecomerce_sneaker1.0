@@ -36,7 +36,7 @@ const features = [
   }
 ];
 
-const Home = ({ onAddToCart, addToCart }) => {
+const Home = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const location = useLocation();
 
@@ -46,7 +46,7 @@ const Home = ({ onAddToCart, addToCart }) => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Hero addToCart={addToCart} />
+      <Hero />
       
       {/* Features Section */}
       <Box sx={{ mb: 8 }}>

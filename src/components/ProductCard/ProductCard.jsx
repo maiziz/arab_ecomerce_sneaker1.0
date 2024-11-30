@@ -5,12 +5,10 @@ import {
   CardMedia, 
   Typography, 
   Box,
-  Rating,
-  Chip
+  Rating
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '../../utils/formatCurrency';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const ProductCard = ({ product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -37,8 +35,8 @@ const ProductCard = ({ product }) => {
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-          '& .view-details': {
-            opacity: 1,
+          '& .MuiCardMedia-root': {
+            transform: 'scale(1.05)',
           }
         },
         borderRadius: 2,
@@ -46,7 +44,7 @@ const ProductCard = ({ product }) => {
         cursor: 'pointer',
       }}
     >
-      <Box sx={{ position: 'relative', pt: '100%' }}>
+      <Box sx={{ position: 'relative', pt: '100%', overflow: 'hidden' }}>
         <CardMedia
           component="img"
           image={product.image}
@@ -60,39 +58,9 @@ const ProductCard = ({ product }) => {
             height: '100%',
             objectFit: 'cover',
             opacity: imageLoaded ? 1 : 0,
-            transition: 'opacity 0.3s ease',
+            transition: 'all 0.3s ease',
           }}
         />
-        {/* View Details Overlay */}
-        <Box
-          className="view-details"
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: 'rgba(0, 0, 0, 0.3)',
-            opacity: 0,
-            transition: 'opacity 0.2s ease',
-          }}
-        >
-          <Chip
-            icon={<VisibilityIcon />}
-            label="عرض التفاصيل"
-            sx={{
-              bgcolor: 'white',
-              color: '#1a237e',
-              fontFamily: 'Cairo',
-              '& .MuiChip-icon': {
-                color: '#1a237e'
-              }
-            }}
-          />
-        </Box>
       </Box>
 
       <CardContent sx={{ flexGrow: 1, p: 2 }}>
@@ -103,17 +71,16 @@ const ProductCard = ({ product }) => {
             fontWeight: 'bold',
             color: '#1a237e',
             textAlign: 'right',
-            fontFamily: 'Cairo',
           }}
         >
           {product.name}
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, justifyContent: 'flex-end' }}>
-          <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', fontFamily: 'Cairo' }}>
-            ({product.reviews} تقييم)
-          </Typography>
           <Rating value={product.rating} readOnly size="small" />
+          <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+            ({product.reviews})
+          </Typography>
         </Box>
 
         <Typography 
@@ -122,10 +89,9 @@ const ProductCard = ({ product }) => {
             fontWeight: 'bold',
             color: '#1a237e',
             textAlign: 'right',
-            fontFamily: 'Cairo',
           }}
         >
-          {formatPrice(product.price)} د.ج
+          {formatPrice(product.price)}
         </Typography>
       </CardContent>
     </Card>

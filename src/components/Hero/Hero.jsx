@@ -6,10 +6,11 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useNavigate } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const Hero = ({ addToCart }) => {
+const Hero = () => {
   const sectionRef = useRef(null);
   const triggerRef = useRef(null);
   const navigate = useNavigate();
@@ -79,21 +80,6 @@ const Hero = ({ addToCart }) => {
 
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
-  };
-
-  const handleAddToCart = (e, product) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (addToCart) {
-      // Default to first available size and color if not specified
-      const defaultSize = product.sizes ? product.sizes[0] : '42';
-      const defaultColor = product.colors ? product.colors[0] : 'أسود';
-      addToCart(product, defaultSize, defaultColor);
-      setOpenSnackbar(true);
-      console.log('Added to cart:', product); // Debug log
-    } else {
-      console.error('addToCart function is not defined'); // Debug log
-    }
   };
 
   const handleCloseSnackbar = (event, reason) => {
@@ -276,26 +262,6 @@ const Hero = ({ addToCart }) => {
                   >
                     اكتشف المزيد
                   </Button>
-                  <IconButton
-                    onClick={(e) => handleAddToCart(e, product)}
-                    sx={{
-                      bgcolor: '#1a237e',
-                      color: 'white',
-                      width: '48px',
-                      height: '48px',
-                      flexShrink: 0,
-                      '&:hover': {
-                        bgcolor: '#303f9f',
-                        transform: 'translateY(-2px)',
-                      },
-                      '&:active': {
-                        transform: 'translateY(0)',
-                      },
-                      transition: 'all 0.3s ease',
-                    }}
-                  >
-                    <AddShoppingCartIcon />
-                  </IconButton>
                 </Box>
               </Box>
             </Box>

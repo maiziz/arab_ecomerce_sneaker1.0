@@ -42,9 +42,8 @@ const Cart = ({ cartItems, removeFromCart, updateCartItems, clearCart }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [openCheckout, setOpenCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [deliveryInfo, setDeliveryInfo] = useState({
     fullName: '',
     phone: '',
     wilaya: '',
@@ -53,6 +52,7 @@ const Cart = ({ cartItems, removeFromCart, updateCartItems, clearCart }) => {
   });
   const [formErrors, setFormErrors] = useState({});
   const [error, setError] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const hasInvalidItems = cartItems.some(item => !item.size || !item.color || item.size === 'undefined' || item.color === 'undefined');
 
@@ -77,60 +77,65 @@ const Cart = ({ cartItems, removeFromCart, updateCartItems, clearCart }) => {
     };
   };
 
-  const handleCheckout = () => {
-    setShowDeliveryForm(true);
-  };
-
-  const handleSubmitOrder = async () => {
-    if (validateForm()) {
-      setLoading(true);
-      try {
-        // Here you would typically send the order to your backend
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-        
-        // Clear cart and show success
-        clearCart();
-        setOrderSuccess(true);
-        setShowDeliveryForm(false);
-        setFormData({
-          fullName: '',
-          phone: '',
-          wilaya: '',
-          address: '',
-          notes: ''
-        });
-      } catch (error) {
-        console.error('Error submitting order:', error);
-        setFormErrors({ submit: 'حدث خطأ أثناء تقديم الطلب. حاول مرة أخرى.' });
-      } finally {
-        setLoading(false);
-      }
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setDeliveryInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user types
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
     }
   };
 
   const validateForm = () => {
     const errors = {};
-    
-    if (!formData.fullName.trim()) {
-      errors.fullName = 'الاسم الكامل مطلوب';
-    }
-    
-    if (!formData.phone.trim()) {
-      errors.phone = 'رقم الهاتف مطلوب';
-    } else if (!/^(0)(5|6|7)[0-9]{8}$/.test(formData.phone)) {
-      errors.phone = 'رقم الهاتف غير صالح';
-    }
-    
-    if (!formData.wilaya) {
-      errors.wilaya = 'الولاية مطلوبة';
-    }
-    
-    if (!formData.address.trim()) {
-      errors.address = 'العنوان مطلوب';
-    }
+    if (!deliveryInfo.fullName.trim()) errors.fullName = 'الاسم الكامل مطلوب';
+    if (!deliveryInfo.phone.trim()) errors.phone = 'رقم الهاتف مطلوب';
+    if (!/^\d{10}$/.test(deliveryInfo.phone.trim())) errors.phone = 'رقم الهاتف يجب أن يكون 10 أرقام';
+    if (!deliveryInfo.address.trim()) errors.address = 'عنوان التوصيل مطلوب';
+    if (!deliveryInfo.wilaya) errors.wilaya = 'ولاية التوصيل مطلوبة';
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const handleCheckout = () => {
+    if (hasInvalidItems) {
+      setError('يوجد منتجات بدون مقاس أو لون. الرجاء حذفها من السلة أو تحديث المقاس واللون.');
+      return;
+    }
+    setShowDeliveryForm(true);
+  };
+
+  const handleDeliverySubmit = async (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      setLoading(true);
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Show confirmation dialog
+        setShowConfirmation(true);
+        setShowDeliveryForm(false);
+        
+        // Clear cart and redirect after delay
+        setTimeout(() => {
+          clearCart();
+          setShowConfirmation(false);
+          navigate('/');
+        }, 3000);
+      } catch (error) {
+        setError('حدث خطأ أثناء إتمام الطلب. الرجاء المحاولة مرة أخرى.');
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   if (cartItems.length === 0) {
@@ -187,7 +192,7 @@ const Cart = ({ cartItems, removeFromCart, updateCartItems, clearCart }) => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
+    <Container maxWidth="lg" sx={{ py: 4, minHeight: '80vh' }}>
       <Typography
         variant="h4"
         sx={{
@@ -493,22 +498,17 @@ const Cart = ({ cartItems, removeFromCart, updateCartItems, clearCart }) => {
             <Button
               variant="contained"
               fullWidth
-              disabled={hasInvalidItems}
               onClick={handleCheckout}
               sx={{
-                backgroundColor: '#1a237e',
-                fontFamily: 'Cairo',
+                bgcolor: '#1a237e',
                 py: 1.5,
+                mb: 2,
                 '&:hover': {
-                  backgroundColor: '#0d1642'
-                },
-                '&.Mui-disabled': {
-                  backgroundColor: '#ccc',
-                  color: 'white'
+                  bgcolor: '#0d1642'
                 }
               }}
             >
-              {hasInvalidItems ? 'يوجد منتجات غير مكتملة' : 'إتمام الطلب'}
+              إتمام الطلب
             </Button>
 
             <Button
@@ -533,168 +533,169 @@ const Cart = ({ cartItems, removeFromCart, updateCartItems, clearCart }) => {
       </Grid>
 
       {/* Delivery Form Dialog */}
-      <Dialog
-        open={showDeliveryForm}
+      <Dialog 
+        open={showDeliveryForm} 
         onClose={() => setShowDeliveryForm(false)}
         maxWidth="sm"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { p: 2 } }}
       >
-        <DialogTitle sx={{ textAlign: 'right', fontFamily: 'Cairo', fontWeight: 'bold' }}>
+        <DialogTitle sx={{ textAlign: 'right', fontFamily: 'Cairo' }}>
           معلومات التوصيل
         </DialogTitle>
-        
         <DialogContent>
-          <Box component="form" sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              label="الاسم الكامل"
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              error={!!formErrors.fullName}
-              helperText={formErrors.fullName}
-              sx={{ mb: 2, direction: 'rtl' }}
-              InputProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-              InputLabelProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-            />
-            
-            <TextField
-              fullWidth
-              label="رقم الهاتف"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              error={!!formErrors.phone}
-              helperText={formErrors.phone}
-              sx={{ mb: 2, direction: 'rtl' }}
-              InputProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-              InputLabelProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-            />
-            
-            <FormControl fullWidth error={!!formErrors.wilaya} sx={{ mb: 2 }}>
-              <InputLabel sx={{ fontFamily: 'Cairo' }}>الولاية</InputLabel>
-              <Select
-                value={formData.wilaya}
-                onChange={(e) => setFormData({ ...formData, wilaya: e.target.value })}
-                label="الولاية"
-                sx={{ textAlign: 'right', fontFamily: 'Cairo' }}
-              >
-                {wilayas.map((wilaya) => (
-                  <MenuItem 
-                    key={wilaya.id} 
-                    value={wilaya.name}
-                    sx={{ textAlign: 'right', fontFamily: 'Cairo' }}
+          <Box component="form" onSubmit={handleDeliverySubmit} sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
+              {/* Form fields */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="الاسم الكامل"
+                  name="fullName"
+                  value={deliveryInfo.fullName}
+                  onChange={handleInputChange}
+                  error={!!formErrors.fullName}
+                  helperText={formErrors.fullName}
+                  sx={{ direction: 'rtl' }}
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="رقم الهاتف"
+                  name="phone"
+                  value={deliveryInfo.phone}
+                  onChange={handleInputChange}
+                  error={!!formErrors.phone}
+                  helperText={formErrors.phone}
+                  sx={{ direction: 'rtl' }}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <FormControl fullWidth error={!!formErrors.wilaya}>
+                  <InputLabel id="wilaya-label" sx={{ direction: 'rtl', right: 14, left: 'auto' }}>
+                    الولاية
+                  </InputLabel>
+                  <Select
+                    labelId="wilaya-label"
+                    name="wilaya"
+                    value={deliveryInfo.wilaya}
+                    onChange={handleInputChange}
+                    sx={{ direction: 'rtl' }}
                   >
-                    {wilaya.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {formErrors.wilaya && (
-                <FormHelperText>{formErrors.wilaya}</FormHelperText>
-              )}
-            </FormControl>
-            
-            <TextField
-              fullWidth
-              label="العنوان"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              error={!!formErrors.address}
-              helperText={formErrors.address}
-              multiline
-              rows={3}
-              sx={{ mb: 2, direction: 'rtl' }}
-              InputProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-              InputLabelProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-            />
-            
-            <TextField
-              fullWidth
-              label="ملاحظات إضافية"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              multiline
-              rows={2}
-              sx={{ direction: 'rtl' }}
-              InputProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-              InputLabelProps={{
-                sx: { fontFamily: 'Cairo' }
-              }}
-            />
+                    {wilayas.map((wilaya) => (
+                      <MenuItem key={wilaya.id} value={wilaya.name}>
+                        {wilaya.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {formErrors.wilaya && (
+                    <FormHelperText>{formErrors.wilaya}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="العنوان"
+                  name="address"
+                  value={deliveryInfo.address}
+                  onChange={handleInputChange}
+                  error={!!formErrors.address}
+                  helperText={formErrors.address}
+                  multiline
+                  rows={3}
+                  sx={{ direction: 'rtl' }}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="ملاحظات إضافية"
+                  name="notes"
+                  value={deliveryInfo.notes}
+                  onChange={handleInputChange}
+                  multiline
+                  rows={2}
+                  sx={{ direction: 'rtl' }}
+                />
+              </Grid>
+            </Grid>
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                onClick={() => setShowDeliveryForm(false)}
+                sx={{ fontFamily: 'Cairo' }}
+              >
+                إلغاء
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                sx={{
+                  bgcolor: '#1a237e',
+                  '&:hover': { bgcolor: '#0d1642' },
+                  fontFamily: 'Cairo'
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'تأكيد الطلب'
+                )}
+              </Button>
+            </Box>
           </Box>
         </DialogContent>
-        
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={() => setShowDeliveryForm(false)}
-            sx={{ fontFamily: 'Cairo' }}
-          >
-            إلغاء
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitOrder}
-            disabled={loading}
-            sx={{
-              bgcolor: '#1a237e',
-              fontFamily: 'Cairo',
-              '&:hover': {
-                bgcolor: '#0d1642'
-              }
-            }}
-          >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              'تأكيد الطلب'
-            )}
-          </Button>
-        </DialogActions>
       </Dialog>
 
-      {/* Success Dialog */}
+      {/* Confirmation Dialog */}
       <Dialog
-        open={orderSuccess}
-        onClose={() => setOrderSuccess(false)}
-        maxWidth="sm"
-        fullWidth
+        open={showConfirmation}
+        aria-labelledby="confirmation-dialog-title"
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: 2,
+            minWidth: { xs: '90%', sm: 400 }
+          }
+        }}
       >
-        <DialogContent sx={{ textAlign: 'center', py: 4 }}>
-          <Typography variant="h5" sx={{ mb: 2, fontFamily: 'Cairo', color: 'success.main' }}>
-            تم تقديم طلبك بنجاح!
-          </Typography>
-          <Typography sx={{ mb: 3, fontFamily: 'Cairo' }}>
-            سنقوم بالاتصال بك قريباً لتأكيد الطلب.
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setOrderSuccess(false);
-              navigate('/');
-            }}
-            sx={{
-              bgcolor: '#1a237e',
-              fontFamily: 'Cairo',
-              '&:hover': {
-                bgcolor: '#0d1642'
-              }
-            }}
-          >
-            العودة للرئيسية
-          </Button>
+        <DialogContent>
+          <Box sx={{ textAlign: 'center', py: 3 }}>
+            <Typography 
+              variant="h6" 
+              component="h2" 
+              sx={{ 
+                mb: 2,
+                fontFamily: 'Cairo',
+                fontWeight: 'bold',
+                color: '#1a237e'
+              }}
+            >
+              شكراً لك!
+            </Typography>
+            <Typography 
+              sx={{ 
+                mb: 2,
+                fontFamily: 'Cairo',
+                color: '#666'
+              }}
+            >
+              تم استلام طلبك بنجاح
+            </Typography>
+            <Typography 
+              sx={{ 
+                fontFamily: 'Cairo',
+                color: '#666'
+              }}
+            >
+              سيتم معالجة طلبك والاتصال بك خلال 24 ساعة القادمة
+            </Typography>
+          </Box>
         </DialogContent>
       </Dialog>
 
