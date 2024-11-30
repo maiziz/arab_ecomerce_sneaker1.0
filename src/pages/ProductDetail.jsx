@@ -1,238 +1,226 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Box, Container, Grid, Typography, Button, Rating, Chip, IconButton, Skeleton } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { formatPrice } from '../utils/formatCurrency';
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  Box, 
+  Container, 
+  Grid, 
+  Typography, 
+  Button, 
+  Rating, 
+  Chip, 
+  IconButton,
+  Snackbar,
+  Alert
+} from '@mui/material';
 import { productData } from '../data/products';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ShareIcon from '@mui/icons-material/Share';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
-const ProductImage = styled('img')({
-  width: '100%',
-  height: 'auto',
-  objectFit: 'cover',
-  borderRadius: '8px',
-  transition: 'transform 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'scale(1.05)',
-  },
-});
-
-const ThumbnailImage = styled('img')({
-  width: '80px',
-  height: '80px',
-  objectFit: 'cover',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  margin: '0 8px',
-  border: '2px solid transparent',
-  '&.active': {
-    border: '2px solid #1a237e',
-  },
-});
-
-const SizeButton = styled(Button)(({ theme, selected }) => ({
-  minWidth: '60px',
-  margin: '0 8px 8px 0',
-  backgroundColor: selected ? '#1a237e' : 'transparent',
-  color: selected ? 'white' : '#1a237e',
-  border: '1px solid #1a237e',
-  '&:hover': {
-    backgroundColor: selected ? '#1a237e' : 'rgba(26, 35, 126, 0.1)',
-  },
-}));
-
-const ColorChip = styled(Chip)(({ selected }) => ({
-  margin: '0 8px 8px 0',
-  border: selected ? '2px solid #1a237e' : 'none',
-  '&:hover': {
-    backgroundColor: 'rgba(26, 35, 126, 0.1)',
-  },
-}));
-
-const ProductDetail = ({ onAddToCart, cartItems }) => {
+const ProductDetail = ({ addToCart }) => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [mainImageLoaded, setMainImageLoaded] = useState(false);
-  const [thumbnailsLoaded, setThumbnailsLoaded] = useState({});
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [error, setError] = useState('');
 
-  const product = useMemo(() => 
-    productData.find(p => p.id === Number(id)), 
-    [id]
-  );
-
-  const allImages = useMemo(() => 
-    product ? [product.image, ...product.additionalImages] : [],
-    [product]
-  );
-
-  const handleSizeSelect = useCallback((size) => {
-    setSelectedSize(size);
-  }, []);
-
-  const handleColorSelect = useCallback((color) => {
-    setSelectedColor(color);
-  }, []);
-
-  const handleImageSelect = useCallback((index) => {
-    setSelectedImage(index);
-    setMainImageLoaded(false);
-  }, []);
-
-  const handleAddToCart = useCallback(() => {
-    if (product && selectedSize && selectedColor) {
-      onAddToCart({
-        ...product,
-        selectedSize,
-        selectedColor
-      });
-    }
-  }, [product, selectedSize, selectedColor, onAddToCart]);
+  // Find the product by ID
+  const product = productData.find(p => p.id === parseInt(id));
 
   if (!product) {
     return (
-      <Container>
-        <Typography variant="h5" align="center" sx={{ my: 4 }}>
+      <Container sx={{ py: 8 }}>
+        <Typography variant="h4" align="center">
           المنتج غير موجود
         </Typography>
       </Container>
     );
   }
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    
+    // Validate selections
+    if (!selectedSize) {
+      setError('الرجاء اختيار المقاس');
+      setOpenSnackbar(true);
+      return;
+    }
+    if (!selectedColor) {
+      setError('الرجاء اختيار اللون');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    if (addToCart) {
+      addToCart(product, selectedSize, selectedColor);
+      setError('');
+      setOpenSnackbar(true);
+      console.log('Adding to cart:', { product, size: selectedSize, color: selectedColor }); // Debug log
+    } else {
+      console.error('addToCart function is not defined in ProductDetail');
+    }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Breadcrumb Navigation */}
-      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-        <Link to="/products" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-          <ArrowBackIcon sx={{ ml: 1 }} />
-          <Typography variant="body1">العودة إلى المنتجات</Typography>
-        </Link>
-      </Box>
+    <Container maxWidth="lg" sx={{ py: 4, direction: 'rtl' }}>
+      <IconButton 
+        onClick={handleGoBack}
+        sx={{ mb: 2 }}
+      >
+        <ArrowBackIcon />
+      </IconButton>
 
       <Grid container spacing={4}>
         {/* Product Images */}
         <Grid item xs={12} md={6}>
-          <Box sx={{ mb: 2 }}>
-            {!mainImageLoaded && (
-              <Skeleton 
-                variant="rectangular" 
-                width="100%" 
-                height={400} 
-                animation="wave" 
-              />
-            )}
-            <ProductImage 
-              src={allImages[selectedImage]} 
-              alt={product.name} 
-              onLoad={() => setMainImageLoaded(true)}
-              sx={{ display: mainImageLoaded ? 'block' : 'none' }}
+          <Box
+            sx={{
+              position: 'relative',
+              bgcolor: '#f5f5f5',
+              borderRadius: 2,
+              overflow: 'hidden',
+              height: '500px',
+            }}
+          >
+            <img
+              src={product.image}
+              alt={product.name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
             />
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            {allImages.map((img, index) => (
-              <ThumbnailImage
-                key={index}
-                src={img}
-                alt={`${product.name} - ${index + 1}`}
-                className={selectedImage === index ? 'active' : ''}
-                onLoad={() => setThumbnailsLoaded(prevState => ({ ...prevState, [index]: true }))}
-                sx={{ display: thumbnailsLoaded[index] ? 'block' : 'none' }}
-                onClick={() => handleImageSelect(index)}
-              />
-            ))}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                display: 'flex',
+                gap: 1,
+              }}
+            >
+              <IconButton sx={{ bgcolor: 'white', '&:hover': { bgcolor: 'white' } }}>
+                <FavoriteBorderIcon />
+              </IconButton>
+              <IconButton sx={{ bgcolor: 'white', '&:hover': { bgcolor: 'white' } }}>
+                <ShareIcon />
+              </IconButton>
+            </Box>
           </Box>
         </Grid>
 
         {/* Product Info */}
         <Grid item xs={12} md={6}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            {product.name}
-          </Typography>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Rating value={product.rating} precision={0.1} readOnly />
-            <Typography variant="body2" sx={{ mr: 1 }}>
-              ({product.reviews} تقييم)
+          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+              {product.name}
             </Typography>
-          </Box>
 
-          <Typography variant="h5" color="primary" sx={{ mb: 2 }}>
-            {formatPrice(product.price)}
-          </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Rating value={product.rating} readOnly />
+              <Typography variant="body2" sx={{ mr: 1 }}>
+                ({product.reviews} تقييم)
+              </Typography>
+            </Box>
 
-          <Typography variant="body1" sx={{ mb: 3 }}>
-            {product.description}
-          </Typography>
-
-          {/* Colors */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-              الألوان المتوفرة:
+            <Typography variant="h5" color="primary" fontWeight="bold" sx={{ mb: 3 }}>
+              {product.price.toLocaleString()} د.ج
             </Typography>
-            <Box>
-              {product.colors.map((color) => (
-                <ColorChip
-                  key={color}
-                  label={color}
-                  onClick={() => handleColorSelect(color)}
-                  selected={selectedColor === color}
+
+            <Typography variant="body1" sx={{ mb: 4 }}>
+              {product.description}
+            </Typography>
+
+            {/* Size Selection */}
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+              المقاس:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+              {product.sizes?.map((size) => (
+                <Chip
+                  key={size}
+                  label={size}
+                  onClick={() => setSelectedSize(size)}
+                  variant={selectedSize === size ? "filled" : "outlined"}
+                  color={selectedSize === size ? "primary" : "default"}
+                  sx={{ minWidth: '60px' }}
                 />
               ))}
             </Box>
-          </Box>
 
-          {/* Sizes */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-              المقاسات المتوفرة:
+            {/* Color Selection */}
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+              اللون:
             </Typography>
-            <Box>
-              {product.sizes.map((size) => (
-                <SizeButton
-                  key={size}
-                  onClick={() => handleSizeSelect(size)}
-                  selected={selectedSize === size}
-                >
-                  {size}
-                </SizeButton>
+            <Box sx={{ display: 'flex', gap: 1, mb: 4, flexWrap: 'wrap' }}>
+              {product.colors?.map((color) => (
+                <Chip
+                  key={color}
+                  label={color}
+                  onClick={() => setSelectedColor(color)}
+                  variant={selectedColor === color ? "filled" : "outlined"}
+                  color={selectedColor === color ? "primary" : "default"}
+                />
               ))}
             </Box>
+
+            {/* Add to Cart Button */}
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<ShoppingCartIcon />}
+              onClick={handleAddToCart}
+              sx={{
+                mt: 'auto',
+                bgcolor: '#1a237e',
+                '&:hover': {
+                  bgcolor: '#0d1642',
+                },
+                py: 1.5,
+              }}
+            >
+              أضف إلى السلة
+            </Button>
           </Box>
-
-          {/* Features */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-              المميزات:
-            </Typography>
-            <ul style={{ paddingRight: '20px', margin: 0 }}>
-              {product.features.map((feature, index) => (
-                <li key={index}>
-                  <Typography variant="body2">{feature}</Typography>
-                </li>
-              ))}
-            </ul>
-          </Box>
-
-          {/* Add to Cart Button */}
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            sx={{ mt: 2 }}
-            disabled={!selectedSize || !selectedColor}
-            onClick={handleAddToCart}
-          >
-            إضافة إلى السلة
-          </Button>
-
-          {/* Stock Status */}
-          <Typography variant="body2" color="success.main" sx={{ mt: 2, textAlign: 'center' }}>
-            {product.stockStatus}
-          </Typography>
         </Grid>
       </Grid>
+
+      {/* Success/Error Snackbar */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={error ? "error" : "success"}
+          sx={{ 
+            width: '100%',
+            fontFamily: 'Cairo',
+            '& .MuiAlert-message': {
+              textAlign: 'right'
+            }
+          }}
+        >
+          {error || 'تمت إضافة المنتج إلى السلة'}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

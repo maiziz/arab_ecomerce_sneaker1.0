@@ -34,17 +34,22 @@ const LoadingFallback = () => (
 function App() {
   const [cartItems, setCartItems] = useState([]);
 
-  const addToCart = (product) => {
+  const addToCart = (product, size, color) => {
     setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
+      const existingItem = prevItems.find(item => 
+        item.id === product.id && 
+        item.size === size && 
+        item.color === color
+      );
+      
       if (existingItem) {
         return prevItems.map(item =>
-          item.id === product.id
+          (item.id === product.id && item.size === size && item.color === color)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prevItems, { ...product, quantity: 1 }];
+      return [...prevItems, { ...product, size, color, quantity: 1 }];
     });
   };
 
@@ -67,28 +72,10 @@ function App() {
         <Navbar cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)} />
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Home onAddToCart={addToCart} cartItems={cartItems} />} />
-            <Route path="/products" element={<Products onAddToCart={addToCart} />} />
-            <Route 
-              path="/cart" 
-              element={
-                <Cart 
-                  cartItems={cartItems}
-                  removeFromCart={removeFromCart}
-                  clearCart={clearCart}
-                  updateCartItems={updateCartItems}
-                />
-              } 
-            />
-            <Route 
-              path="/product/:id" 
-              element={
-                <ProductDetail 
-                  onAddToCart={addToCart}
-                  cartItems={cartItems}
-                />
-              } 
-            />
+            <Route path="/" element={<Suspense fallback={<LoadingFallback />}><Home addToCart={addToCart} /></Suspense>} />
+            <Route path="/products" element={<Suspense fallback={<LoadingFallback />}><Products addToCart={addToCart} /></Suspense>} />
+            <Route path="/cart" element={<Suspense fallback={<LoadingFallback />}><Cart cartItems={cartItems} removeFromCart={removeFromCart} clearCart={clearCart} updateCartItems={updateCartItems} /></Suspense>} />
+            <Route path="/product/:id" element={<Suspense fallback={<LoadingFallback />}><ProductDetail addToCart={addToCart} /></Suspense>} />
           </Routes>
         </Suspense>
       </Router>

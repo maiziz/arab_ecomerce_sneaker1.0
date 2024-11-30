@@ -1,28 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
   CardMedia, 
   Typography, 
-  Button, 
   Box,
   Rating,
-  Skeleton
+  Chip
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '../../utils/formatCurrency';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
-const ProductCard = ({ product, onAddToCart }) => {
-  const [imageLoaded, setImageLoaded] = React.useState(false);
+const ProductCard = ({ product }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const navigate = useNavigate();
 
   if (!product) {
     console.error('Product data is missing');
     return null;
   }
 
+  const handleProductClick = () => {
+    navigate(`/product/${product.id}`);
+  };
+
   return (
     <Card 
+      onClick={handleProductClick}
       sx={{ 
         height: '100%',
         display: 'flex',
@@ -32,31 +37,16 @@ const ProductCard = ({ product, onAddToCart }) => {
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+          '& .view-details': {
+            opacity: 1,
+          }
         },
         borderRadius: 2,
         overflow: 'hidden',
+        cursor: 'pointer',
       }}
     >
-      <Box 
-        sx={{ 
-          position: 'relative',
-          paddingTop: '100%', // 1:1 Aspect ratio
-          width: '100%',
-          backgroundColor: '#f5f5f5'
-        }}
-      >
-        {!imageLoaded && (
-          <Skeleton 
-            variant="rectangular" 
-            sx={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%'
-            }} 
-          />
-        )}
+      <Box sx={{ position: 'relative', pt: '100%' }}>
         <CardMedia
           component="img"
           image={product.image}
@@ -68,106 +58,75 @@ const ProductCard = ({ product, onAddToCart }) => {
             left: 0,
             width: '100%',
             height: '100%',
-            objectFit: 'contain',
-            p: 2,
+            objectFit: 'cover',
             opacity: imageLoaded ? 1 : 0,
-            transition: 'opacity 0.3s ease-in-out'
+            transition: 'opacity 0.3s ease',
           }}
         />
-      </Box>
-
-      <CardContent 
-        sx={{ 
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1,
-          p: 2,
-          '&:last-child': { pb: 2 }
-        }}
-      >
-        <Link 
-          to={`/product/${product.id}`}
-          style={{ 
-            textDecoration: 'none',
-            color: 'inherit',
-            display: 'block',
-            flexGrow: 1
-          }}
-        >
-          <Typography 
-            variant="h6" 
-            component="h2"
-            sx={{ 
-              fontFamily: 'Cairo',
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              mb: 1,
-              textAlign: 'right',
-              minHeight: '2.5em',
-              lineHeight: 1.2,
-              color: '#1a237e'
-            }}
-          >
-            {product.name}
-          </Typography>
-
-          <Box sx={{ 
+        {/* View Details Overlay */}
+        <Box
+          className="view-details"
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: 1,
-            mb: 1
-          }}>
-            <Typography 
-              variant="body2" 
-              color="text.secondary"
-              sx={{ 
-                fontFamily: 'Cairo',
-                direction: 'rtl'
-              }}
-            >
-              ({product.reviews})
-            </Typography>
-            <Rating 
-              value={product.rating} 
-              readOnly 
-              size="small"
-              dir="ltr"
-            />
-          </Box>
-
-          <Typography 
-            variant="h6" 
-            color="primary"
-            sx={{ 
-              fontFamily: 'Cairo',
-              fontWeight: 'bold',
-              textAlign: 'right',
-              mb: 1,
-              color: '#1a237e'
-            }}
-          >
-            {formatPrice(product.price)}
-          </Typography>
-        </Link>
-
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={() => onAddToCart(product)}
-          startIcon={<ShoppingCartIcon />}
-          sx={{
-            mt: 'auto',
-            backgroundColor: '#1a237e',
-            fontFamily: 'Cairo',
-            '&:hover': {
-              backgroundColor: '#0d1642'
-            }
+            justifyContent: 'center',
+            bgcolor: 'rgba(0, 0, 0, 0.3)',
+            opacity: 0,
+            transition: 'opacity 0.2s ease',
           }}
         >
-          أضف إلى السلة
-        </Button>
+          <Chip
+            icon={<VisibilityIcon />}
+            label="عرض التفاصيل"
+            sx={{
+              bgcolor: 'white',
+              color: '#1a237e',
+              fontFamily: 'Cairo',
+              '& .MuiChip-icon': {
+                color: '#1a237e'
+              }
+            }}
+          />
+        </Box>
+      </Box>
+
+      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            mb: 1,
+            fontWeight: 'bold',
+            color: '#1a237e',
+            textAlign: 'right',
+            fontFamily: 'Cairo',
+          }}
+        >
+          {product.name}
+        </Typography>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, justifyContent: 'flex-end' }}>
+          <Typography variant="body2" sx={{ mr: 1, color: 'text.secondary', fontFamily: 'Cairo' }}>
+            ({product.reviews} تقييم)
+          </Typography>
+          <Rating value={product.rating} readOnly size="small" />
+        </Box>
+
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontWeight: 'bold',
+            color: '#1a237e',
+            textAlign: 'right',
+            fontFamily: 'Cairo',
+          }}
+        >
+          {formatPrice(product.price)} د.ج
+        </Typography>
       </CardContent>
     </Card>
   );
