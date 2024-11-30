@@ -29,29 +29,67 @@ import { useNavigate } from 'react-router-dom';
 const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
   const navigate = useNavigate();
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoError, setPromoError] = useState('');
+  const [selectedSize, setSelectedSize] = useState({});
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     address: '',
     city: '',
     notes: '',
+    paymentMethod: 'cod' // cash on delivery by default
   });
   const [formErrors, setFormErrors] = useState({});
   const [orderSuccess, setOrderSuccess] = useState(false);
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost = 30; // ثابت تكلفة الشحن
-  const totalWithShipping = total + shippingCost;
+  const shippingCost = total > 200 ? 0 : 30; // Free shipping over 200 درهم
+  const discount = (total * promoDiscount);
+  const totalWithShipping = total + shippingCost - discount;
 
   const handleQuantityChange = (itemId, change) => {
     const updatedItems = cartItems.map(item => {
       if (item.id === itemId) {
-        const newQuantity = Math.max(1, item.quantity + change);
+        const newQuantity = Math.max(1, Math.min(10, item.quantity + change)); // Maximum 10 items
         return { ...item, quantity: newQuantity };
       }
       return item;
     });
     updateCartItems(updatedItems);
+  };
+
+  const handlePromoCode = () => {
+    setPromoError('');
+    // Example promo codes
+    const promoCodes = {
+      'WELCOME10': 0.10,
+      'SUMMER20': 0.20,
+      'SPECIAL30': 0.30
+    };
+
+    if (!promoCode.trim()) {
+      setPromoError('الرجاء إدخال رمز الخصم');
+      return;
+    }
+
+    const discount = promoCodes[promoCode.toUpperCase()];
+    if (discount) {
+      setPromoDiscount(discount);
+      setPromoError('تم تطبيق الخصم بنجاح!');
+    } else {
+      setPromoError('رمز الخصم غير صالح');
+      setPromoDiscount(0);
+    }
+  };
+
+  const handleSizeChange = (itemId, size) => {
+    setSelectedSize(prev => ({
+      ...prev,
+      [itemId]: size
+    }));
   };
 
   const handleInputChange = (e) => {
@@ -73,7 +111,7 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
     const errors = {};
     if (!formData.fullName.trim()) errors.fullName = 'الاسم مطلوب';
     if (!formData.phone.trim()) errors.phone = 'رقم الهاتف مطلوب';
-    if (!/^\d{10}$/.test(formData.phone.trim())) errors.phone = 'رقم الهاتف غير صحيح';
+    if (!/^\d{8,12}$/.test(formData.phone.trim())) errors.phone = 'رقم الهاتف يجب أن يكون بين 8 و 12 رقم';
     if (!formData.address.trim()) errors.address = 'العنوان مطلوب';
     if (!formData.city.trim()) errors.city = 'المدينة مطلوبة';
     
@@ -81,21 +119,37 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (validateForm()) {
-      // Here you would typically send the order to your backend
-      console.log('Order placed:', {
-        items: cartItems,
-        customer: formData,
-        total: totalWithShipping
-      });
-      setOrderSuccess(true);
-      setTimeout(() => {
-        clearCart();
-        setShowCheckoutForm(false);
-        setOrderSuccess(false);
-        navigate('/');
-      }, 3000);
+      setLoading(true);
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Here you would typically send the order to your backend
+        // const response = await fetch('/api/orders', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     items: cartItems,
+        //     customer: formData,
+        //     total: totalWithShipping
+        //   })
+        // });
+        
+        setOrderSuccess(true);
+        setTimeout(() => {
+          clearCart();
+          setShowCheckoutForm(false);
+          setOrderSuccess(false);
+          navigate('/');
+        }, 5000); // Increased to 5 seconds
+      } catch (error) {
+        console.error('Error processing order:', error);
+        setFormErrors({ submit: 'حدث خطأ أثناء معالجة الطلب. يرجى المحاولة مرة أخرى.' });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -137,33 +191,51 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
                         alt={item.name} 
                         style={{ width: 60, height: 60, marginLeft: 16, objectFit: 'cover' }}
                       />
-                      <ListItemText
-                        primary={
-                          <Typography sx={{ fontFamily: 'Cairo', fontWeight: 'bold' }}>
-                            {item.name}
-                          </Typography>
-                        }
-                        secondary={
-                          <Typography sx={{ fontFamily: 'Cairo', color: 'primary.main' }}>
-                            {item.price} درهم
-                          </Typography>
-                        }
-                      />
-                      <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                        <ButtonGroup size="small" sx={{ mx: 2 }}>
-                          <Button onClick={() => handleQuantityChange(item.id, -1)}>
-                            <RemoveIcon />
-                          </Button>
-                          <Button disabled sx={{ minWidth: 40 }}>
-                            {item.quantity}
-                          </Button>
-                          <Button onClick={() => handleQuantityChange(item.id, 1)}>
-                            <AddIcon />
-                          </Button>
-                        </ButtonGroup>
-                        <IconButton onClick={() => removeFromCart(item.id)}>
-                          <DeleteIcon />
-                        </IconButton>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <ListItemText
+                          primary={
+                            <Typography sx={{ fontFamily: 'Cairo', fontWeight: 'bold' }}>
+                              {item.name}
+                            </Typography>
+                          }
+                          secondary={
+                            <>
+                              <Typography sx={{ fontFamily: 'Cairo', color: 'primary.main' }}>
+                                {item.price} درهم
+                              </Typography>
+                              <Box sx={{ mt: 1 }}>
+                                <ButtonGroup size="small">
+                                  {['40', '41', '42', '43', '44', '45'].map((size) => (
+                                    <Button
+                                      key={size}
+                                      variant={selectedSize[item.id] === size ? 'contained' : 'outlined'}
+                                      onClick={() => handleSizeChange(item.id, size)}
+                                      sx={{ minWidth: '40px' }}
+                                    >
+                                      {size}
+                                    </Button>
+                                  ))}
+                                </ButtonGroup>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                                <ButtonGroup size="small" sx={{ mx: 2 }}>
+                                  <Button onClick={() => handleQuantityChange(item.id, -1)}>
+                                    <RemoveIcon />
+                                  </Button>
+                                  <Button disabled sx={{ minWidth: 40 }}>
+                                    {item.quantity}
+                                  </Button>
+                                  <Button onClick={() => handleQuantityChange(item.id, 1)}>
+                                    <AddIcon />
+                                  </Button>
+                                </ButtonGroup>
+                                <IconButton onClick={() => removeFromCart(item.id)}>
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Box>
+                            </>
+                          }
+                        />
                       </Box>
                     </Box>
                   </ListItem>
@@ -180,14 +252,52 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
               <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Cairo' }}>
                 ملخص الطلب
               </Typography>
+              
+              {/* Promo Code Section */}
+              <Box sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="رمز الخصم"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  error={promoError === 'رمز الخصم غير صالح'}
+                  helperText={promoError}
+                  sx={{ mb: 1 }}
+                />
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={handlePromoCode}
+                  sx={{ fontFamily: 'Cairo' }}
+                >
+                  تطبيق الخصم
+                </Button>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+              
+              {/* Order Summary */}
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography sx={{ fontFamily: 'Cairo' }}>المجموع</Typography>
-                  <Typography>{total} درهم</Typography>
+                  <Typography>{total.toFixed(2)} درهم</Typography>
                 </Box>
+                {promoDiscount > 0 && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography sx={{ fontFamily: 'Cairo', color: 'success.main' }}>الخصم</Typography>
+                    <Typography sx={{ color: 'success.main' }}>
+                      -{discount.toFixed(2)} درهم
+                    </Typography>
+                  </Box>
+                )}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography sx={{ fontFamily: 'Cairo' }}>تكلفة الشحن</Typography>
-                  <Typography>{shippingCost} درهم</Typography>
+                  <Typography sx={{ fontFamily: 'Cairo' }}>
+                    {total > 200 ? 'الشحن (مجاني)' : 'تكلفة الشحن'}
+                  </Typography>
+                  <Typography>
+                    {total > 200 ? '0.00' : shippingCost} درهم
+                  </Typography>
                 </Box>
                 <Divider sx={{ my: 1 }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -195,7 +305,7 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
                     الإجمالي
                   </Typography>
                   <Typography sx={{ fontWeight: 'bold' }}>
-                    {totalWithShipping} درهم
+                    {totalWithShipping.toFixed(2)} درهم
                   </Typography>
                 </Box>
               </Box>
@@ -297,25 +407,48 @@ const Cart = ({ cartItems, removeFromCart, clearCart, updateCartItems }) => {
           )}
         </DialogContent>
         <DialogActions sx={{ direction: 'rtl', p: 2 }}>
-          {!orderSuccess && (
-            <>
-              <Button 
-                onClick={() => setShowCheckoutForm(false)} 
-                sx={{ fontFamily: 'Cairo' }}
-              >
-                إلغاء
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleCheckout}
-                sx={{ fontFamily: 'Cairo' }}
-              >
-                تأكيد الطلب - الدفع عند الاستلام
-              </Button>
-            </>
-          )}
+          <Button 
+            onClick={() => setShowCheckoutForm(false)} 
+            sx={{ fontFamily: 'Cairo' }}
+            disabled={loading}
+          >
+            إلغاء
+          </Button>
+          <Button 
+            onClick={handleCheckout} 
+            variant="contained" 
+            sx={{ fontFamily: 'Cairo' }}
+            disabled={loading}
+          >
+            {loading ? 'جاري المعالجة...' : 'تأكيد الطلب'}
+          </Button>
         </DialogActions>
+        {formErrors.submit && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {formErrors.submit}
+          </Alert>
+        )}
       </Dialog>
+      {/* Payment Method Selection */}
+      <Box sx={{ mb: 3 }}>
+        <Typography sx={{ mb: 1, fontFamily: 'Cairo' }}>طريقة الدفع</Typography>
+        <ButtonGroup fullWidth>
+          <Button
+            variant={formData.paymentMethod === 'cod' ? 'contained' : 'outlined'}
+            onClick={() => handleInputChange({ target: { name: 'paymentMethod', value: 'cod' }})}
+            sx={{ fontFamily: 'Cairo' }}
+          >
+            الدفع عند الاستلام
+          </Button>
+          <Button
+            variant={formData.paymentMethod === 'card' ? 'contained' : 'outlined'}
+            onClick={() => handleInputChange({ target: { name: 'paymentMethod', value: 'card' }})}
+            sx={{ fontFamily: 'Cairo' }}
+          >
+            بطاقة ائتمان
+          </Button>
+        </ButtonGroup>
+      </Box>
     </Container>
   );
 };
